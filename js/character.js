@@ -11,6 +11,8 @@ export const CHARACTER = {
   saveProf: ['dex', 'int'],
   skillProf: ['acrobatics', 'sleightOfHand', 'stealth', 'investigation', 'insight', 'perception', 'survival', 'deception'],
   expertise: ['perception', 'acrobatics'],
+  // Order of the "Your skills" strip on the Play tab (as approved).
+  playSkills: ['perception', 'acrobatics', 'stealth', 'survival', 'insight', 'sleightOfHand', 'investigation', 'deception'],
   tools: [
     { id: 'thieves', name: "Thieves' tools", ability: 'dex', use: 'pick a lock or disarm a trap, DC 15' },
     { id: 'carto', name: "Cartographer's tools", ability: 'wis', use: 'draw a map, DC 15' },

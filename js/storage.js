@@ -7,7 +7,7 @@ export const CORRUPT_KEY = 'quickstep-sheet/corrupt';
 
 const APP = 'quickstep-sheet';
 const UNREADABLE = 'Saved data was unreadable, so the sheet started fresh. The old copy was kept.';
-const NOT_SAVING = "This device isn't saving. Export a backup before closing.";
+export const NOT_SAVING = "This device isn't saving. Export a backup before closing.";
 const NOT_BACKUP = 'Not a Quickstep backup file';
 
 const isObject = (v) => Boolean(v) && typeof v === 'object' && !Array.isArray(v);
