@@ -53,6 +53,13 @@ test('toggles change to-hit', () => {
   ok(h.includes('+6 · 1d6+3'), 'plain shortbow +6');
 });
 
+test('two hit die types render separately', () => {
+  const level2 = { ...c, level: 2, hp: { max: 16, hitDice: [{ die: 8, count: 1 }, { die: 10, count: 1 }] } };
+  const h = renderPlay(level2, defaultState(level2), {});
+  ok(h.includes('data-arg="d8:0"') && h.includes('data-arg="d10:0"'), 'one dot per die type');
+  ok(h.includes('1d10'), 'shows the d10');
+});
+
 test('amount field opens the numeric keypad', () => {
   ok(renderPlay(c, defaultState(c), {}).includes('inputmode="numeric"'));
 });

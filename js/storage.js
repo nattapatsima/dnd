@@ -63,7 +63,14 @@ export function migrateState(raw, c) {
     success: fitFlags(r.deathSaves && r.deathSaves.success, 3),
     failure: fitFlags(r.deathSaves && r.deathSaves.failure, 3),
   };
-  s.hitDiceSpent = fitFlags(r.hitDiceSpent, c.hp.hitDiceCount);
+  // Per die type. A first-version save kept one flat list, which belonged to the first die type.
+  s.hitDiceSpent = Object.fromEntries(c.hp.hitDice.map((h, i) => {
+    const key = `d${h.die}`;
+    let old = null;
+    if (isObject(r.hitDiceSpent)) old = r.hitDiceSpent[key];
+    else if (i === 0 && Array.isArray(r.hitDiceSpent)) old = r.hitDiceSpent;
+    return [key, fitFlags(old, h.count)];
+  }));
   for (const res of c.resources) s.uses[res.id] = fitFlags(isObject(r.uses) ? r.uses[res.id] : null, resourceMax(c, res));
   for (const key of Object.keys(s.toggles)) {
     if (isObject(r.toggles) && typeof r.toggles[key] === 'boolean') s.toggles[key] = r.toggles[key];

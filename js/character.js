@@ -22,7 +22,8 @@ export const CHARACTER = {
   speed: 50,
   size: 'S',
   darkvision: 60,
-  hp: { max: 9, hitDie: 8, hitDiceCount: 1 },
+  // One entry per die type, e.g. a Fighter level later adds { die: 10, count: 1 }.
+  hp: { max: 9, hitDice: [{ die: 8, count: 1 }] },
   rangedBonus: 0,
   spellcasting: { ability: 'wis', label: 'Magic Initiate (Druid)' },
 

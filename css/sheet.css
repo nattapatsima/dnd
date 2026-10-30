@@ -91,6 +91,8 @@ input, textarea {
   padding: 8px 10px;
   width: 100%;
 }
+/* 16 px or more, so the iPad doesn't zoom in when a field is tapped. */
+input, textarea { font-size: 16px; }
 .error { color: var(--danger); font-size: 13px; }
 .error:empty { display: none; }
 
@@ -104,6 +106,9 @@ input, textarea {
 .ab-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; text-align: center; }
 .tight { margin-top: 4px; }
 #message { margin-top: 4px; min-height: 1em; }
+/* Message text and its Undo button share one row instead of stacking. */
+.msg { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.msg .link { flex: none; margin-left: auto; }
 
 /* Checks, Features and spells, Gear, Notes */
 .b { font-weight: 600; }
@@ -122,9 +127,9 @@ textarea { display: block; resize: vertical; margin-top: 4px; line-height: 1.4; 
 /* Compact scale for the smallest iPads (9.7"/10.2" width, iPad mini height). Touch targets stay 44 px. */
 @media (max-width: 1080px), (max-height: 760px) {
   :root { --gap: 6px; }
-  body { font-size: 14px; }
+  body { font-size: 14px; line-height: 1.25; }
   #app { padding: 6px 10px 8px; }
-  .panel { padding: 6px 8px; }
+  .panel { padding: 5px 8px; }
   .chip { padding: 0 9px; font-size: 13px; }
   .tabs .chip { padding: 0 12px; }
   .big { font-size: 28px; }

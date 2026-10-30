@@ -52,6 +52,6 @@ export function renderNotes(c, state, ui = {}) {
 <textarea data-note="bio" rows="4" placeholder="Appearance, personality, backstory">${esc(n.bio)}</textarea>
 <textarea data-note="session" rows="9" placeholder="Session notes: names, quests, loot">${esc(n.session)}</textarea>
 <div class="row backup"><span class="btnrow"><button data-action="export">Export backup</button><button data-action="import">Import backup</button></span><span class="label">v${c.buildVersion} · level ${c.level}</span></div>
-<div id="message" class="label" role="status">${esc(ui.message ?? '')}</div>
+<div id="message" class="label msg" role="status"><span>${esc(ui.message ?? '')}</span>${ui.canUndo ? '<button class="link" data-action="undo">Undo</button>' : ''}</div>
 <input type="file" id="import-file" accept=".json,application/json" hidden>`;
 }

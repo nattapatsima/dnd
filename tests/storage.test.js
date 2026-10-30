@@ -34,18 +34,29 @@ test('storage that throws', () => {
   eq(saveState(bad, o.state), false);
 });
 
+const level2 = {
+  ...c,
+  level: 2,
+  hp: { max: 16, hitDice: [{ die: 8, count: 1 }, { die: 10, count: 1 }] },
+  resources: [...c.resources, { id: 'secondWind', name: 'Second Wind', max: 2, recharge: 'long', shortRestRegain: 1 }],
+};
+
 test('migration on level-up', () => {
-  const old = { ...defaultState(c), hp: { current: 4, temp: 2, max: 9 }, notes: { ...defaultState(c).notes, session: 'met Vex' } };
-  const next = {
-    ...c,
-    hp: { ...c.hp, max: 16, hitDiceCount: 2 },
-    resources: [...c.resources, { id: 'secondWind', name: 'Second Wind', max: 2, recharge: 'short' }],
+  const old = {
+    ...defaultState(c), hp: { current: 4, temp: 2, max: 9 }, hitDiceSpent: { d8: [true] },
+    notes: { ...defaultState(c).notes, session: 'met Vex' },
   };
-  const s = migrateState(old, next);
+  const s = migrateState(old, level2);
   eq(s.hp, { current: 11, temp: 2, max: 16 });
   eq(s.uses.secondWind, [false, false]);
-  eq(s.hitDiceSpent.length, 2);
+  eq(s.hitDiceSpent, { d8: [true], d10: [false] });
   eq(s.notes.session, 'met Vex');
+});
+
+test('first-version saved state keeps its spent hit die', () => {
+  const v1 = { ...defaultState(c), stateVersion: 1, hp: { current: 5, temp: 0, max: 9 }, hitDiceSpent: [true] };
+  eq(migrateState(v1, c).hitDiceSpent, { d8: [true] });
+  eq(migrateState(v1, level2).hitDiceSpent, { d8: [true], d10: [false] });
 });
 
 test('removed resources are dropped', () => eq(

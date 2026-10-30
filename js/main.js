@@ -85,9 +85,11 @@ export function mount(root, { character: c, storage, now = () => new Date() }) {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
     try {
-      state = parseBackup(await file.text(), c);
-      previous = null;
-      ui = { error: null, message: 'Backup restored', canUndo: false };
+      const restored = parseBackup(await file.text(), c);
+      // Keep the sheet as it was, so a wrong file pick can be undone.
+      previous = state;
+      state = restored;
+      ui = { error: null, message: 'Backup restored', canUndo: true };
       save();
     } catch (error) {
       ui = { error: null, message: error.message, canUndo: false };
@@ -154,7 +156,11 @@ export function mount(root, { character: c, storage, now = () => new Date() }) {
         dispatch({ type: 'toggleDeathSave', kind, index: Number(index) });
         return;
       }
-      case 'hit-die': dispatch({ type: 'toggleHitDie', index: Number(arg) }); return;
+      case 'hit-die': {
+        const [die, index] = arg.split(':');
+        dispatch({ type: 'toggleHitDie', die, index: Number(index) });
+        return;
+      }
       case 'use': {
         const [id, index] = arg.split(':');
         dispatch({ type: 'toggleUse', id, index: Number(index) });

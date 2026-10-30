@@ -33,7 +33,12 @@ export function renderPlay(c, state, ui = {}) {
   const others = c.attacks.filter((a) => !a.main);
   const hitText = `${t.advantage ? '2d20 high' : 'd20'} ${fmt(toHit(c, shot, { assistedAim: t.assistedAim }))}`;
   const con = abilityMod(c.abilities.con);
-  const hitDie = `Hit ${c.hp.hitDiceCount === 1 ? 'die' : 'dice'} 1d${c.hp.hitDie} ${con < 0 ? '−' : '+'} ${Math.abs(con)}`;
+  const conText = `${con < 0 ? '−' : '+'} ${Math.abs(con)}`;
+  const dice = c.hp.hitDice;
+  const dieDots = (h) => dots('hit-die', `d${h.die}:`, state.hitDiceSpent[`d${h.die}`] ?? [], (f) => !f, `d${h.die} hit die`);
+  const hitDice = dice.length === 1 && dice[0].count === 1
+    ? `Hit die 1d${dice[0].die} ${conText}${dieDots(dice[0])}`
+    : `Hit dice ${dice.map((h) => `${h.count}d${h.die}${dieDots(h)}`).join(' ')} ${conText} each`;
 
   return `
 <div class="play">
@@ -54,7 +59,7 @@ export function renderPlay(c, state, ui = {}) {
       ${stat('AC', c.ac)}${stat('Init', fmt(abilityMod(c.abilities.dex)))}${stat('Speed', c.speed)}
       ${stat('Prof', fmt(profBonus(c.level)))}${stat('Size', c.size)}${stat('Passive', passive(c, 'perception'))}
     </div>
-    <div class="row tight"><span class="label">Darkvision ${c.darkvision} ft</span><span class="label">${hitDie}${dots('hit-die', '', state.hitDiceSpent, (f) => !f, 'Hit die')}</span></div>
+    <div class="row tight"><span class="label">Darkvision ${c.darkvision} ft</span><span class="label">${hitDice}</span></div>
   </section>
 
   <section class="col">
@@ -86,7 +91,7 @@ export function renderPlay(c, state, ui = {}) {
       <div class="label">${exhaustionText(state.exhaustion)}</div>
     </div>
     <div class="btnrow rest"><button data-action="short-rest">Short rest</button><button data-action="long-rest">Long rest</button></div>
-    <div id="message" class="label" role="status">${esc(ui.message ?? '')}${ui.canUndo ? ' <button class="link" data-action="undo">Undo</button>' : ''}</div>
+    <div id="message" class="label msg" role="status"><span>${esc(ui.message ?? '')}</span>${ui.canUndo ? '<button class="link" data-action="undo">Undo</button>' : ''}</div>
   </section>
 </div>
 

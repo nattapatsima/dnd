@@ -16,8 +16,18 @@ iframe { border: 1px solid #999; display: block; margin-top: 12px; }
 <script type="module">
 import { test, ok, run } from './runner.js';
 
-// Every current iPad landscape size, smallest first.
-const SIZES = [[1024, 744], [1080, 810], [1133, 744], [1180, 820], [1366, 1024]];
+// The installed app's usable area on each current iPad in landscape: the screen minus the
+// status bar (24 px, or 20 px on home-button iPads) and the home-indicator inset (20 px).
+const SIZES = [
+  [1024, 748], // 9.7"
+  [1080, 790], // 10.2"
+  [1133, 700], // iPad mini
+  [1180, 776], // 10.9" / 11" Air
+  [1194, 790], // 11" Pro
+  [1366, 980], // 12.9" / 13"
+];
+// Room left for wider iPad fonts (SF Pro) than the test browser's.
+const SLACK = 20;
 
 function load(width, height) {
   return new Promise((resolve) => {
@@ -35,23 +45,26 @@ for (const [width, height] of SIZES) {
   test(`Play tab fits ${width} × ${height}`, async () => {
     const frame = await load(width, height);
     const doc = frame.contentDocument;
-    const page = doc.documentElement;
-    const measure = () => [page.scrollWidth, page.scrollHeight];
-    const calm = measure();
-    // Busiest screen: Undo showing after damage, plus the amount error.
-    doc.querySelector('#amount').value = '1';
+    const win = frame.contentWindow;
+    // Bottom of the content, including the page's bottom padding.
+    const bottom = () => Math.ceil(doc.getElementById('app').getBoundingClientRect().bottom
+      + parseFloat(win.getComputedStyle(doc.body).paddingBottom));
+    const calm = bottom();
+    // Busiest screen: the short-rest message with Undo, plus the amount error.
+    doc.querySelector('[data-action="short-rest"]').click();
     doc.querySelector('[data-action="damage"]').click();
-    doc.querySelector('[data-action="damage"]').click();
-    const busy = measure();
+    const busy = bottom();
+    const wide = doc.documentElement.scrollWidth;
+    const amountFont = parseFloat(win.getComputedStyle(doc.querySelector('#amount')).fontSize);
     doc.querySelector('[data-action="undo"]')?.click();
     const smallTargets = [...doc.querySelectorAll('button, [data-action]')]
       .filter((el) => { const box = el.getBoundingClientRect(); return box.width > 0 && box.height < 44; }).length;
-    const fitsIn = ([w, h]) => w <= width && h <= height;
-    const fits = fitsIn(calm) && fitsIn(busy);
-    window.__fit.push({ size: `${width} × ${height}`, fits, smallTargets, calm, busy });
+    const fits = Math.max(calm, busy) + SLACK <= height && wide <= width;
+    window.__fit.push({ size: `${width} × ${height}`, fits, calm, busy, wide, smallTargets, amountFont });
     frame.remove();
-    ok(fits, `page is ${calm.join(' × ')}, busy ${busy.join(' × ')}`);
+    ok(fits, `content ends at ${calm}, busy ${busy} (needs ≤ ${height - SLACK}), width ${wide}`);
     ok(smallTargets === 0, `${smallTargets} touch targets under 44 px`);
+    ok(amountFont >= 16, `Amount field font ${amountFont} px (under 16 px makes the iPad zoom on tap)`);
   });
 }
 

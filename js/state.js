@@ -1,11 +1,14 @@
 // Table state: everything the player changes at the table. Pure functions only.
 import { resourceMax } from './derive.js';
 
-export const STATE_VERSION = 1;
+// 2: hit dice are tracked per die type ({ d8: [...], d10: [...] }).
+export const STATE_VERSION = 2;
 
 const flags = (n) => Array(n).fill(false);
 const clearedSaves = () => ({ success: flags(3), failure: flags(3) });
-const hitDieWord = (c) => (c.hp.hitDiceCount === 1 ? 'die' : 'dice');
+const totalHitDice = (c) => c.hp.hitDice.reduce((n, h) => n + h.count, 0);
+const hitDieWord = (c) => (totalHitDice(c) === 1 ? 'die' : 'dice');
+export const hitDiceFlags = (c) => Object.fromEntries(c.hp.hitDice.map((h) => [`d${h.die}`, flags(h.count)]));
 
 export function defaultState(c) {
   return {
@@ -13,7 +16,7 @@ export function defaultState(c) {
     lastSeenBuild: null,
     hp: { current: c.hp.max, temp: 0, max: c.hp.max },
     deathSaves: clearedSaves(),
-    hitDiceSpent: flags(c.hp.hitDiceCount),
+    hitDiceSpent: hitDiceFlags(c),
     uses: Object.fromEntries(c.resources.map((r) => [r.id, flags(resourceMax(c, r))])),
     toggles: { advantage: false, assistedAim: false, inspiration: false },
     conditions: Object.fromEntries(c.conditions.map((name) => [name, false])),
@@ -60,17 +63,37 @@ export function reduce(state, action, c) {
       s.hp.temp = Math.max(s.hp.temp, action.amount);
       return done(null, true);
     case 'shortRest': {
-      const shortOnes = c.resources.filter((r) => r.recharge === 'short' && s.uses[r.id]);
-      for (const r of shortOnes) s.uses[r.id] = s.uses[r.id].map(() => false);
-      const message = shortOnes.length
-        ? `Short rest: ${shortOnes.map((r) => r.name).join(', ')} restored. Spend hit ${hitDieWord(c)}, then use Heal.`
-        : `Nothing recharges on a short rest at level ${c.level}. Spend your hit ${hitDieWord(c)}, then use Heal.`;
+      // recharge 'short' restores every use; shortRestRegain gives back that many spent uses.
+      const back = [];
+      for (const r of c.resources) {
+        const used = s.uses[r.id];
+        if (!used) continue;
+        if (r.recharge === 'short') {
+          if (used.some(Boolean)) back.push(r.name);
+          s.uses[r.id] = used.map(() => false);
+        } else if (r.shortRestRegain) {
+          let regained = 0;
+          s.uses[r.id] = [...used].reverse().map((spent) => {
+            if (spent && regained < r.shortRestRegain) {
+              regained += 1;
+              return false;
+            }
+            return spent;
+          }).reverse();
+          if (regained) back.push(`${r.name} +${regained}`);
+        }
+      }
+      const recharges = c.resources.some((r) => r.recharge === 'short' || r.shortRestRegain);
+      let message;
+      if (!recharges) message = `Nothing recharges on a short rest at level ${c.level}. Spend your hit ${hitDieWord(c)}, then use Heal.`;
+      else if (back.length) message = `Short rest: ${back.join(', ')} back. Spend hit ${hitDieWord(c)}, then use Heal.`;
+      else message = `Short rest: nothing was spent. Spend hit ${hitDieWord(c)}, then use Heal.`;
       return done(message, true);
     }
     case 'longRest':
       s.hp.current = s.hp.max;
       s.hp.temp = 0;
-      s.hitDiceSpent = s.hitDiceSpent.map(() => false);
+      for (const die of Object.keys(s.hitDiceSpent)) s.hitDiceSpent[die] = s.hitDiceSpent[die].map(() => false);
       for (const id of Object.keys(s.uses)) s.uses[id] = s.uses[id].map(() => false);
       s.deathSaves = clearedSaves();
       s.exhaustion = Math.max(0, s.exhaustion - 1);
@@ -81,7 +104,7 @@ export function reduce(state, action, c) {
       s.deathSaves[action.kind][action.index] = !s.deathSaves[action.kind][action.index];
       return done();
     case 'toggleHitDie':
-      s.hitDiceSpent[action.index] = !s.hitDiceSpent[action.index];
+      s.hitDiceSpent[action.die][action.index] = !s.hitDiceSpent[action.die][action.index];
       return done();
     case 'toggleUse':
       s.uses[action.id][action.index] = !s.uses[action.id][action.index];

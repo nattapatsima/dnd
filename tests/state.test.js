@@ -72,6 +72,30 @@ test('undoable flags', () => eq(
   [false, false, true],
 ));
 
+// A level-2 build: Rogue d8 plus Fighter d10, and Second Wind (2 uses, 1 back on a short rest).
+const level2 = {
+  ...c,
+  level: 2,
+  hp: { max: 16, hitDice: [{ die: 8, count: 1 }, { die: 10, count: 1 }] },
+  resources: [...c.resources, { id: 'secondWind', name: 'Second Wind', max: 2, recharge: 'long', shortRestRegain: 1 }],
+};
+
+test('hit dice are tracked per die type', () => {
+  eq(defaultState(c).hitDiceSpent, { d8: [false] });
+  const s = reduce(defaultState(level2), { type: 'toggleHitDie', die: 'd10', index: 0 }, level2).state;
+  eq(s.hitDiceSpent, { d8: [false], d10: [true] });
+  eq(reduce(s, { type: 'longRest' }, level2).state.hitDiceSpent, { d8: [false], d10: [false] });
+});
+
+test('Second Wind gets one use back on a short rest', () => {
+  let s = defaultState(level2);
+  s = reduce(s, { type: 'toggleUse', id: 'secondWind', index: 0 }, level2).state;
+  s = reduce(s, { type: 'toggleUse', id: 'secondWind', index: 1 }, level2).state;
+  const o = reduce(s, { type: 'shortRest' }, level2);
+  eq(o.state.uses.secondWind.filter(Boolean).length, 1);
+  eq(o.message, 'Short rest: Second Wind +1 back. Spend hit dice, then use Heal.');
+});
+
 test('reduce does not mutate its input', () => {
   const before = JSON.stringify(s0);
   r(s0, { type: 'damage', amount: 3 });
