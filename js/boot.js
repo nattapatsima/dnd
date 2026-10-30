@@ -17,3 +17,10 @@ function deviceStorage() {
 }
 
 mount(document.getElementById('app'), { character: CHARACTER, storage: deviceStorage(), now: () => new Date() });
+
+// Cache every file so the sheet opens with no signal at the table.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}

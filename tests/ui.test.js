@@ -1,6 +1,21 @@
 import { test, eq, ok } from './runner.js';
-import { mountFresh, click, setAmount, text, type } from './helpers.js';
+import { mem, mountFresh, click, setAmount, text, type } from './helpers.js';
 import { STORAGE_KEY } from '../js/storage.js';
+import { CHARACTER as c } from '../js/character.js';
+import { defaultState } from '../js/state.js';
+
+test('update notice shows once', () => {
+  const storage = mem({ [STORAGE_KEY]: JSON.stringify({ ...defaultState(c), lastSeenBuild: 0 }) });
+  const first = mountFresh({ storage });
+  ok(text(first.root, '#message').includes('Updated to v1'), 'notice on the first launch after an update');
+  const second = mountFresh({ storage });
+  ok(!text(second.root, '#message').includes('Updated'), 'only once');
+});
+
+test('first launch shows no update notice', () => {
+  const { root } = mountFresh();
+  ok(!text(root, '#message').includes('Updated'));
+});
 
 const saved = (storage) => JSON.parse(storage.getItem(STORAGE_KEY));
 

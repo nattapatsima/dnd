@@ -32,6 +32,13 @@ export function mount(root, { character: c, storage, now = () => new Date() }) {
   let previous = null;
   let ui = { error: null, message: loaded.warning, canUndo: false };
 
+  // Remember which build this device has seen; after an update, say so once.
+  if (state.lastSeenBuild !== c.buildVersion) {
+    if (state.lastSeenBuild !== null && !ui.message) ui.message = `Updated to v${c.buildVersion}`;
+    state = reduce(state, { type: 'seenBuild', version: c.buildVersion }, c).state;
+    if (!saveState(storage, state) && !ui.message) ui.message = NOT_SAVING;
+  }
+
   function save() {
     if (!saveState(storage, state)) ui = { ...ui, message: NOT_SAVING };
   }
