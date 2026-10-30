@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quickstep sheet tests</title>
+<style>
+body { font: 14px/1.5 system-ui, sans-serif; margin: 16px; }
+.fail { color: #b3261e; }
+</style>
+</head>
+<body>
+<h1>Quickstep sheet tests</h1>
+<div id="results">Running…</div>
+<script type="module">
+import { run, loadFailed } from './runner.js';
+
+const FILES = [
+  './smoke.test.js',
+];
+
+for (const file of FILES) {
+  try {
+    await import(file);
+  } catch (error) {
+    loadFailed(file, error);
+  }
+}
+run();
+</script>
+</body>
+</html>
