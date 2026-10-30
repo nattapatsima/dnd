@@ -1,13 +1,28 @@
 // Mounts the sheet: renders the active tab, routes taps to reduce(), saves after every change.
 import { parseAmount, reduce } from './state.js';
-import { NOT_SAVING, loadState, saveState } from './storage.js';
-import { esc, renderPlay } from './render-play.js';
+import {
+  NOT_SAVING, exportBackup, loadState, parseBackup, saveState,
+} from './storage.js';
+import { renderPlay } from './render-play.js';
+import {
+  renderChecks, renderFeatures, renderGear, renderHeader, renderNotes,
+} from './render-tabs.js';
 
-const TABS = [['play', 'Play'], ['checks', 'Checks'], ['features', 'Features and spells'], ['gear', 'Gear'], ['notes', 'Notes']];
-
-function header(c, tab) {
-  return `<header class="top"><div class="title"><b>${esc(c.name)}</b> <span class="label">${esc(c.classLine)}</span></div>`
-    + `<nav class="tabs">${TABS.map(([id, label]) => `<button class="chip${id === tab ? ' on' : ''}" data-action="tab" data-arg="${id}">${label}</button>`).join('')}</nav></header>`;
+// Hand a backup file to the iPad share sheet when it can take files, otherwise download it.
+async function offerFile(filename, text) {
+  const file = new File([text], filename, { type: 'application/json' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    await navigator.share({ files: [file], title: filename });
+    return;
+  }
+  const url = URL.createObjectURL(file);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 export function mount(root, { character: c, storage, now = () => new Date() }) {
@@ -22,12 +37,67 @@ export function mount(root, { character: c, storage, now = () => new Date() }) {
   }
 
   function body() {
-    if (tab === 'play') return renderPlay(c, state, ui);
-    return '<p class="label">This tab arrives in the next build step.</p>';
+    switch (tab) {
+      case 'checks': return renderChecks(c);
+      case 'features': return renderFeatures(c);
+      case 'gear': return renderGear(c, state);
+      case 'notes': return renderNotes(c, state, ui);
+      default: return renderPlay(c, state, ui);
+    }
   }
 
   function render() {
-    root.innerHTML = header(c, tab) + `<main class="tab-${tab}">${body()}</main>`;
+    root.innerHTML = renderHeader(c, state, tab) + `<main class="tab-${tab}">${body()}</main>`;
+  }
+
+  // Text fields save on every keystroke without redrawing, so the caret stays put.
+  // Editing also drops the undo snapshot, so Undo can never roll back what was typed.
+  function onInput(event) {
+    const el = event.target;
+    let action = null;
+    if (el.dataset.note) action = { type: 'setNote', field: el.dataset.note, value: el.value };
+    else if (el.dataset.gear) action = { type: 'setGear', list: el.dataset.gear, lines: el.value.split('\n') };
+    else if (el.dataset.coin) action = { type: 'setCoin', coin: el.dataset.coin, value: el.value };
+    if (!action) return;
+    state = reduce(state, action, c).state;
+    previous = null;
+    ui = { ...ui, canUndo: false };
+    save();
+    if (action.type === 'setNote' && action.field === 'name') {
+      const title = root.querySelector('.title b');
+      if (title) title.textContent = el.value.trim() || c.name;
+    }
+    if (action.type === 'setCoin') {
+      const fund = root.querySelector('#rifle-fund');
+      if (fund) fund.textContent = `Rifle fund ${state.coins.gp} / ${c.rifleGoal} gp`;
+    }
+  }
+
+  async function onImport(event) {
+    if (event.target.id !== 'import-file') return;
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    try {
+      state = parseBackup(await file.text(), c);
+      previous = null;
+      ui = { error: null, message: 'Backup restored', canUndo: false };
+      save();
+    } catch (error) {
+      ui = { error: null, message: error.message, canUndo: false };
+    }
+    render();
+  }
+
+  async function onExport() {
+    const { filename, text } = exportBackup(state, now());
+    try {
+      await offerFile(filename, text);
+      ui = { ...ui, message: 'Backup exported' };
+    } catch (error) {
+      if (error && error.name === 'AbortError') return;
+      ui = { ...ui, message: "Couldn't export the backup" };
+    }
+    render();
   }
 
   function dispatch(action) {
@@ -87,11 +157,16 @@ export function mount(root, { character: c, storage, now = () => new Date() }) {
       case 'condition': dispatch({ type: 'toggleCondition', name: arg }); return;
       case 'exhaustion': dispatch({ type: 'exhaustion', delta: Number(arg) }); return;
       case 'arrows': dispatch({ type: 'arrows', delta: Number(arg) }); return;
+      case 'export': onExport(); return;
+      case 'import': root.querySelector('#import-file')?.click(); return;
       default:
     }
   }
 
   root.addEventListener('click', onTap);
+  root.addEventListener('input', onInput);
+  root.addEventListener('change', onImport);
+  window.addEventListener('pagehide', save);
   render();
   return { getState: () => state, now };
 }

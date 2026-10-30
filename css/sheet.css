@@ -105,8 +105,24 @@ input, textarea {
 .tight { margin-top: 4px; }
 #message { margin-top: 4px; min-height: 1em; }
 
+/* Checks, Features and spells, Gear, Notes */
+.b { font-weight: 600; }
+.checks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap); align-items: start; }
+.checks > .panel { margin-top: 0; }
+.feature + .feature { margin-top: 4px; }
+.next { margin-top: var(--gap); }
+textarea { display: block; resize: vertical; margin-top: 4px; line-height: 1.4; }
+.coins { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--gap); margin-top: var(--gap); }
+.coins .panel { display: block; margin-top: 0; }
+.gear-foot { margin-top: var(--gap); }
+.notes-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gap); }
+.tab-notes textarea { margin-top: var(--gap); }
+.backup { margin-top: var(--gap); }
+
 /* Portrait and narrow screens: stack the columns. */
 @media (max-width: 900px) {
   .play { grid-template-columns: minmax(0, 1fr); }
   .ab-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .checks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .coins { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }

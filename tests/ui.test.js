@@ -1,6 +1,79 @@
 import { test, eq, ok } from './runner.js';
-import { mountFresh, click, setAmount, text } from './helpers.js';
+import { mountFresh, click, setAmount, text, type } from './helpers.js';
 import { STORAGE_KEY } from '../js/storage.js';
+
+const saved = (storage) => JSON.parse(storage.getItem(STORAGE_KEY));
+
+async function importFile(root, content) {
+  const input = root.querySelector('#import-file');
+  const files = new DataTransfer();
+  files.items.add(new File([content], 'backup.json', { type: 'application/json' }));
+  input.files = files.files;
+  input.dispatchEvent(new Event('change', { bubbles: true }));
+  await new Promise((resolve) => setTimeout(resolve, 80));
+}
+
+test('typing a note saves immediately', () => {
+  const { root, storage } = mountFresh();
+  click(root, 'tab', 'notes');
+  type(root, '[data-note="name"]', 'Pip');
+  eq(saved(storage).notes.name, 'Pip');
+});
+
+test('header shows the entered name', () => {
+  const { root } = mountFresh();
+  click(root, 'tab', 'notes');
+  type(root, '[data-note="name"]', 'Pip');
+  click(root, 'tab', 'play');
+  ok(root.textContent.includes('Pip'));
+});
+
+test('coins update the rifle fund', () => {
+  const { root } = mountFresh();
+  click(root, 'tab', 'gear');
+  type(root, '[data-coin="gp"]', '40');
+  click(root, 'tab', 'gear');
+  ok(root.textContent.includes('Rifle fund 40 / 1000 gp'));
+});
+
+test('gear edits are kept one item per line', () => {
+  const { root, storage } = mountFresh();
+  click(root, 'tab', 'gear');
+  type(root, '[data-gear="pack"]', 'Rope\n\n Potion of healing ');
+  eq(saved(storage).gear.pack, ['Rope', 'Potion of healing']);
+});
+
+test('typing after damage clears undo so notes are kept', () => {
+  const { root, storage } = mountFresh();
+  setAmount(root, '3');
+  click(root, 'damage');
+  click(root, 'tab', 'notes');
+  type(root, '[data-note="session"]', 'met Vex');
+  click(root, 'tab', 'play');
+  ok(!root.querySelector('[data-action="undo"]'), 'undo gone');
+  eq(saved(storage).notes.session, 'met Vex');
+});
+
+test('import rejects a wrong file and keeps state', async () => {
+  const { root } = mountFresh();
+  setAmount(root, '3');
+  click(root, 'damage');
+  click(root, 'tab', 'notes');
+  await importFile(root, '{"app":"other"}');
+  eq(text(root, '#message'), 'Not a Quickstep backup file');
+  click(root, 'tab', 'play');
+  eq(text(root, '#hp'), '6');
+});
+
+test('import restores a backup', async () => {
+  const { root } = mountFresh();
+  click(root, 'tab', 'notes');
+  await importFile(root, JSON.stringify({ app: 'quickstep-sheet', state: { hp: { current: 2, temp: 0, max: 9 }, notes: { name: 'Pip', alignment: '', bio: '', session: '' } } }));
+  eq(text(root, '#message'), 'Backup restored');
+  click(root, 'tab', 'play');
+  eq(text(root, '#hp'), '2');
+  ok(root.textContent.includes('Pip'), 'name restored');
+});
 
 test('damage, undo and validation', () => {
   const { root } = mountFresh();
