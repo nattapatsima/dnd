@@ -24,7 +24,7 @@ test('gear tab', () => {
 
 test('notes tab', () => {
   const h = renderNotes(c, defaultState(c), {});
-  ok(h.includes('v1 · level 1'), 'version label');
+  ok(h.includes(`v${c.buildVersion} · level 1`), 'version label');
   ok(h.includes('data-action="export"'), 'export button');
 });
 
@@ -51,6 +51,12 @@ test('toggles change to-hit', () => {
   const h = renderPlay(c, { ...s, toggles: { ...s.toggles, assistedAim: true } }, {});
   ok(h.includes('d20 +6'), 'shot +6');
   ok(h.includes('+6 · 1d6+3'), 'plain shortbow +6');
+});
+
+test('Assisted Aim doubles the shot range', () => {
+  const s = defaultState(c);
+  ok(renderPlay(c, s, {}).includes('80 / 320 ft'), 'normal range');
+  ok(renderPlay(c, { ...s, toggles: { ...s.toggles, assistedAim: true } }, {}).includes('160 / 640 ft'), 'doubled range');
 });
 
 test('two hit die types render separately', () => {

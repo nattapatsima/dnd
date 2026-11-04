@@ -1,7 +1,7 @@
 // The Play tab: everything needed for a turn on one landscape screen.
 import {
   SKILLS, abilityMod, damageText, exhaustionText, fmt, passive, profBonus,
-  saveBonus, skillBonus, skillMark, sneakDice, toHit,
+  rangeText, saveBonus, skillBonus, skillMark, sneakDice, toHit,
 } from './derive.js';
 
 // Escape text for HTML. Apostrophes are left alone; attributes always use double quotes.
@@ -68,7 +68,7 @@ export function renderPlay(c, state, ui = {}) {
       <div class="row"><span>To hit</span><span class="hit">${hitText}</span></div>
       <div class="row"><span>Damage</span><b>${damageText(c, shot, {})}</b></div>
       ${shot.sneak ? `<div class="row"><span>Sneak Attack</span><b>+${sneakDice(c)}</b></div>` : ''}
-      <div class="label">${esc(shot.range)} · ${esc(shot.note)}</div>
+      <div class="label">${rangeText(shot, { assistedAim: t.assistedAim })} · ${esc(shot.note)}</div>
       <div class="chips">${chip('toggle', 'advantage', 'Advantage', t.advantage)}${chip('toggle', 'assistedAim', 'Assisted Aim', t.assistedAim)}</div>
     </div>
     <div class="panel">

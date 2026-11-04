@@ -1,5 +1,5 @@
 // Offline cache for the sheet. Bump CACHE together with CHARACTER.buildVersion on every publish.
-const CACHE = 'quickstep-v1';
+const CACHE = 'quickstep-v2';
 const ASSETS = [
   './',
   './index.html',

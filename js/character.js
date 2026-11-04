@@ -1,7 +1,7 @@
 // Build data for the Quickstep Sniper. Claude edits this on level-ups; the app never does.
 // Every number shown on the sheet must match Characters/Quickstep Sniper.md.
 export const CHARACTER = {
-  buildVersion: 1,
+  buildVersion: 2,
   name: 'Quickstep Sniper',
   level: 1,
   classLine: 'Rogue 1 · level 1',
@@ -30,7 +30,7 @@ export const CHARACTER = {
   attacks: [
     {
       id: 'shot', name: 'Ferocious Strike, shortbow', kind: 'ranged', ability: 'dex', die: '1d6',
-      cantripDie: 'd4', sneak: true, range: '80 / 320 ft', note: 'Vex: a hit gives advantage on your next shot at it', main: true,
+      cantripDie: 'd4', sneak: true, range: [80, 320], note: 'Vex: a hit gives advantage on your next shot at it', main: true,
     },
     { id: 'plain', name: 'Shortbow, plain (while hidden)', kind: 'ranged', ability: 'dex', die: '1d6' },
     { id: 'shortsword', name: 'Shortsword, Vex', kind: 'melee', ability: 'dex', die: '1d6' },

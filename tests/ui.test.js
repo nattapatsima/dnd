@@ -7,7 +7,7 @@ import { defaultState } from '../js/state.js';
 test('update notice shows once', () => {
   const storage = mem({ [STORAGE_KEY]: JSON.stringify({ ...defaultState(c), lastSeenBuild: 0 }) });
   const first = mountFresh({ storage });
-  ok(text(first.root, '#message').includes('Updated to v1'), 'notice on the first launch after an update');
+  ok(text(first.root, '#message').includes(`Updated to v${c.buildVersion}`), 'notice on the first launch after an update');
   const second = mountFresh({ storage });
   ok(!text(second.root, '#message').includes('Updated'), 'only once');
 });

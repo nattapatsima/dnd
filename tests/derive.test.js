@@ -46,3 +46,8 @@ test('damage text', () => {
 test('resources', () => eq(c.resources.map((r) => d.resourceMax(c, r)), [1, 1]));
 
 test('exhaustion', () => eq([0, 2, 6].map(d.exhaustionText), ['No penalty', 'd20 tests −4 · speed −10 ft', 'Dead']));
+
+test('rangeText doubles only with Assisted Aim', () => eq(
+  [d.rangeText(attack('shot'), {}), d.rangeText(attack('shot'), { assistedAim: true })],
+  ['80 / 320 ft', '160 / 640 ft'],
+));

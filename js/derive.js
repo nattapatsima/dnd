@@ -71,6 +71,12 @@ export function toHit(c, attack, { assistedAim = false } = {}) {
   return mod(c, attack.ability) + prof(c) + rangedExtra;
 }
 
+// Assisted Aim doubles a ranged weapon's normal and long range.
+export function rangeText(attack, { assistedAim = false } = {}) {
+  const k = assistedAim && attack.kind === 'ranged' ? 2 : 1;
+  return `${attack.range[0] * k} / ${attack.range[1] * k} ft`;
+}
+
 export function damageText(c, attack, { compact = false } = {}) {
   const m = mod(c, attack.ability);
   const sign = m < 0 ? '−' : '+';
