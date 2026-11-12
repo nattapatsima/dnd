@@ -43,12 +43,20 @@ test('header shows the entered name', () => {
   ok(root.textContent.includes('Pip'));
 });
 
-test('coins update the rifle fund', () => {
-  const { root } = mountFresh();
+test('fire, reload and buy bullets', () => {
+  const { root, storage } = mountFresh();
+  click(root, 'shot', '0');
+  click(root, 'shot', '1');
+  eq(saved(storage).shotsFired, [true, true, false, false, false]);
+  click(root, 'reload');
+  eq(text(root, '#bullets'), '13');
+  ok(text(root, '#message').startsWith('Reloaded. 13 spare bullets left.'), 'reload message');
+  click(root, 'undo');
+  eq(text(root, '#bullets'), '15');
   click(root, 'tab', 'gear');
-  type(root, '[data-coin="gp"]', '40');
-  click(root, 'tab', 'gear');
-  ok(root.textContent.includes('Rifle fund 40 / 1000 gp'));
+  click(root, 'bullets', '+1');
+  eq(text(root, '#bullets'), '16');
+  eq(saved(storage).bullets, 16);
 });
 
 test('gear edits are kept one item per line', () => {

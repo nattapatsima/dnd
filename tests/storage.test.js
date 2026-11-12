@@ -14,9 +14,10 @@ test('empty storage gives defaults', () => {
 
 test('round trip', () => {
   const m = mem();
-  const s = { ...defaultState(c), arrows: 31 };
+  const s = { ...defaultState(c), bullets: 31, shotsFired: [true, true, false, false, false] };
   ok(saveState(m, s));
-  eq(loadState(m, c).state.arrows, 31);
+  eq(loadState(m, c).state.bullets, 31);
+  eq(loadState(m, c).state.shotsFired, [true, true, false, false, false]);
 });
 
 test('corrupt data is kept aside', () => {
@@ -61,7 +62,7 @@ test('first-version saved state keeps its spent hit die', () => {
 
 test('removed resources are dropped', () => eq(
   Object.keys(migrateState(defaultState(c), { ...c, resources: [c.resources[0]] }).uses),
-  ['startling'],
+  ['ravenQueen'],
 ));
 
 test('export file', () => {
@@ -81,5 +82,28 @@ test('parseBackup rejects', () => {
 test('parseBackup migrates', () => {
   const s = parseBackup(JSON.stringify({ app: 'quickstep-sheet', state: { hp: { current: 3, temp: 0, max: 9 } } }), c);
   eq(s.hp.current, 3);
-  eq(s.arrows, 40);
+  eq(s.bullets, 15);
+});
+
+test('Quickstep save: untouched gear and coins follow the new build', () => {
+  const [old] = c.legacyDefaults;
+  const quickstep = {
+    ...defaultState(c), stateVersion: 2, arrows: 37, gear: old.gear, coins: old.coins,
+    notes: { ...defaultState(c).notes, name: 'Pip' },
+  };
+  delete quickstep.shotsFired;
+  delete quickstep.bullets;
+  const s = migrateState(quickstep, c);
+  eq(s.gear, c.gearDefaults);
+  eq(s.coins, c.coinDefaults);
+  eq([s.bullets, s.shotsFired.length, s.notes.name], [15, 5, 'Pip']);
+  ok(!('arrows' in s), 'arrows dropped');
+});
+
+test('Quickstep save: edited gear and coins are kept', () => {
+  const [old] = c.legacyDefaults;
+  const edited = { ...defaultState(c), gear: { ...old.gear, pack: ['Rope'] }, coins: { ...old.coins, gp: 42 } };
+  const s = migrateState(edited, c);
+  eq(s.gear.pack, ['Rope']);
+  eq(s.coins.gp, 42);
 });

@@ -1,6 +1,6 @@
 {
-  "name": "Quickstep Sniper",
-  "short_name": "Quickstep",
+  "name": "Phantom Sniper",
+  "short_name": "Sniper",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

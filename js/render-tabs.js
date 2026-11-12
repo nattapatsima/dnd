@@ -43,7 +43,8 @@ export function renderGear(c, state) {
   return `<div class="panel"><div class="label">Equipped · one item per line</div><textarea data-gear="equipped" rows="4">${esc(state.gear.equipped.join('\n'))}</textarea></div>
 <div class="panel"><div class="label">Pack · one item per line</div><textarea data-gear="pack" rows="5">${esc(state.gear.pack.join('\n'))}</textarea></div>
 <div class="coins">${COINS.map((coin) => `<label class="panel"><span class="label">${coin.toUpperCase()}</span><input data-coin="${coin}" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="${state.coins[coin]}"></label>`).join('')}</div>
-<div class="row gear-foot"><span>Attunement 0 / ${c.attunementSlots}</span><span class="muted" id="rifle-fund">Rifle fund ${state.coins.gp} / ${c.rifleGoal} gp</span></div>`;
+<div class="row gear-foot"><span>Attunement 0 / ${c.attunementSlots}</span><span class="row"><span>Spare bullets</span><span class="stepper"><button data-action="bullets" data-arg="-1" aria-label="Remove a bullet">−</button><b id="bullets">${state.bullets}</b><button data-action="bullets" data-arg="+1" aria-label="Add a bullet">+</button></span></span></div>
+<div class="label">Plus ${c.rifle.shots} in the rifle when loaded · Reload on the Play tab refills it from these</div>`;
 }
 
 export function renderNotes(c, state, ui = {}) {

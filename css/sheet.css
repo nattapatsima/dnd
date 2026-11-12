@@ -159,3 +159,7 @@ textarea { display: block; resize: vertical; margin-top: 4px; line-height: 1.4; 
   .checks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .coins { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+
+/* Ability box: bigger scores, modifiers and saves at every size. The traits line below keeps label size. */
+.ab-grid .label { font-size: 17px; }
+.ab-grid b { font-size: 28px; line-height: 1.15; }

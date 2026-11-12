@@ -1,6 +1,6 @@
 // The Play tab: everything needed for a turn on one landscape screen.
 import {
-  SKILLS, abilityMod, damageText, exhaustionText, fmt, passive, profBonus,
+  SKILLS, abilityMod, damageText, fmt, passive, profBonus,
   rangeText, saveBonus, skillBonus, skillMark, sneakDice, toHit,
 } from './derive.js';
 
@@ -21,11 +21,6 @@ function dots(action, argPrefix, flags, filled, label) {
 }
 
 const stat = (label, value) => `<div><div class="label">${label}</div><b>${value}</b></div>`;
-
-function stepper(action, value, id, lessLabel, moreLabel) {
-  return `<span class="stepper"><button data-action="${action}" data-arg="-1" aria-label="${lessLabel}">−</button>`
-    + `<b id="${id}">${value}</b><button data-action="${action}" data-arg="+1" aria-label="${moreLabel}">+</button></span>`;
-}
 
 export function renderPlay(c, state, ui = {}) {
   const t = state.toggles;
@@ -75,7 +70,7 @@ export function renderPlay(c, state, ui = {}) {
       <div class="label">Other attacks</div>
       ${others.map((a) => `<div class="row"><span>${esc(a.name)}</span><b>${fmt(toHit(c, a, { assistedAim: t.assistedAim }))} · ${damageText(c, a, { compact: true })}</b></div>`).join('')}
     </div>
-    <div class="panel row"><span>Arrows</span>${stepper('arrows', state.arrows, 'arrows', 'Use an arrow', 'Add an arrow')}</div>
+    <div class="panel row ammo"><span>Rifle</span><span class="dots">${dots('shot', '', state.shotsFired, (f) => !f, 'Rifle shot')}</span><button data-action="reload" aria-label="Reload from ${state.bullets} spare bullets">Reload · <span id="bullets">${state.bullets}</span></button></div>
   </section>
 
   <section class="col">
@@ -84,12 +79,6 @@ export function renderPlay(c, state, ui = {}) {
       ${c.resources.map((r) => `<div class="row"><span>${esc(r.name)}</span><span class="dots">${dots('use', `${r.id}:`, state.uses[r.id] ?? [], (f) => !f, r.name)}</span></div>${r.note ? `<div class="label">${esc(r.note)}</div>` : ''}`).join('')}
       <div class="row"><span>Inspiration</span>${chip('toggle', 'inspiration', 'Have it', t.inspiration)}</div>
     </div>
-    <div class="panel">
-      <div class="label">Status</div>
-      <div class="chips">${c.conditions.map((name) => chip('condition', name, name, state.conditions[name])).join('')}</div>
-      <div class="row"><span>Exhaustion</span>${stepper('exhaustion', state.exhaustion, 'exhaustion', 'Lower exhaustion', 'Raise exhaustion')}</div>
-      <div class="label">${exhaustionText(state.exhaustion)}</div>
-    </div>
     <div class="btnrow rest"><button data-action="short-rest">Short rest</button><button data-action="long-rest">Long rest</button></div>
     <div id="message" class="label msg" role="status"><span>${esc(ui.message ?? '')}</span>${ui.canUndo ? '<button class="link" data-action="undo">Undo</button>' : ''}</div>
   </section>
@@ -97,7 +86,7 @@ export function renderPlay(c, state, ui = {}) {
 
 <div class="panel abilities" data-box="abilities">
   <div class="ab-grid">${ABILITIES.map(([k, label]) => `<div><div class="label">${label} ${c.abilities[k]}</div><b>${fmt(abilityMod(c.abilities[k]))}</b><div class="label">save ${fmt(saveBonus(c, k))}${c.saveProf.includes(k) ? ' ●' : ''}</div></div>`).join('')}</div>
-  <div class="label">${esc(c.feyAncestry)}</div>
+  <div class="label">${esc(c.traitsLine)}</div>
 </div>
 
 <div class="panel">

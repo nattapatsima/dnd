@@ -1,84 +1,95 @@
-// Build data for the Quickstep Sniper. Claude edits this on level-ups; the app never does.
-// Every number shown on the sheet must match Characters/Quickstep Sniper.md.
+// Build data for the Phantom Sniper. Claude edits this on level-ups; the app never does.
+// Every number shown on the sheet must match Characters/Phantom Sniper.md.
 export const CHARACTER = {
-  buildVersion: 2,
-  name: 'Quickstep Sniper',
+  buildVersion: 3,
+  name: 'Phantom Sniper',
   level: 1,
   classLine: 'Rogue 1 · level 1',
-  classes: { rogue: 1, fighter: 0 },
+  classes: { rogue: 1 },
 
   abilities: { str: 8, dex: 17, con: 13, int: 10, wis: 16, cha: 10 },
   saveProf: ['dex', 'int'],
-  skillProf: ['acrobatics', 'sleightOfHand', 'stealth', 'investigation', 'insight', 'perception', 'survival', 'deception'],
+  skillProf: ['perception', 'acrobatics', 'stealth', 'insight', 'investigation', 'arcana', 'nature'],
   expertise: ['perception', 'acrobatics'],
-  // Order of the "Your skills" strip on the Play tab (as approved).
-  playSkills: ['perception', 'acrobatics', 'stealth', 'survival', 'insight', 'sleightOfHand', 'investigation', 'deception'],
+  // Order of the "Your skills" strip on the Play tab.
+  playSkills: ['perception', 'acrobatics', 'stealth', 'insight', 'investigation', 'arcana', 'nature'],
   tools: [
     { id: 'thieves', name: "Thieves' tools", ability: 'dex', use: 'pick a lock or disarm a trap, DC 15' },
-    { id: 'carto', name: "Cartographer's tools", ability: 'wis', use: 'draw a map, DC 15' },
+    { id: 'woodcarver', name: "Woodcarver's tools", ability: 'dex', use: 'carve a pattern in wood, DC 10' },
   ],
 
   ac: 15,
-  speed: 50,
-  size: 'S',
+  speed: 30,
+  size: 'M',
   darkvision: 60,
-  // One entry per die type, e.g. a Fighter level later adds { die: 10, count: 1 }.
+  // One entry per die type.
   hp: { max: 9, hitDice: [{ die: 8, count: 1 }] },
   rangedBonus: 0,
   spellcasting: { ability: 'wis', label: 'Magic Initiate (Druid)' },
 
   attacks: [
     {
-      id: 'shot', name: 'Ferocious Strike, shortbow', kind: 'ranged', ability: 'dex', die: '1d6',
-      cantripDie: 'd4', sneak: true, range: [80, 320], note: 'Vex: a hit gives advantage on your next shot at it', main: true,
+      id: 'shot', name: 'Hunting Rifle', kind: 'ranged', ability: 'dex', die: '2d10',
+      sneak: true, range: [80, 240], note: 'Slow: a hit cuts its speed by 10 ft', main: true,
     },
-    { id: 'plain', name: 'Shortbow, plain (while hidden)', kind: 'ranged', ability: 'dex', die: '1d6' },
-    { id: 'shortsword', name: 'Shortsword, Vex', kind: 'melee', ability: 'dex', die: '1d6' },
+    { id: 'shortbow', name: 'Shortbow, Vex', kind: 'ranged', ability: 'dex', die: '1d6' },
     { id: 'dagger', name: 'Dagger, thrown 20/60', kind: 'thrown', ability: 'dex', die: '1d4' },
   ],
+  // Hunting Rifle: Reload 5 shots, then reload as an action or Bonus Action.
+  rifle: { shots: 5 },
+  // Spare bullets, not counting the 5 in the rifle (20 bought).
+  bulletsDefault: 15,
 
   resources: [
     {
-      id: 'startling', name: 'Startling Speed', max: 'level', recharge: 'long',
-      note: 'Move 10+ ft: attacks on you have disadvantage · not while Incapacitated or Restrained',
+      id: 'ravenQueen', name: 'Raven Queen teleport', max: 'prof', recharge: 'long',
+      note: 'Bonus Action: teleport 30 ft to a space you can see',
     },
     { id: 'assistedAim', name: 'Assisted Aim', max: 1, recharge: 'long' },
   ],
-
-  conditions: ['Concentrating', 'Prone', 'Grappled', 'Restrained', 'Poisoned', 'Frightened'],
+  longRestNote: 'Trance: pick the Hunting Rifle again.',
 
   spells: [
-    { name: 'Ferocious Strike', meta: 'cantrip · action · V, S', text: 'One weapon attack, +1d4 damage on a hit' },
-    {
-      name: "Stalker's Eye", meta: 'cantrip · action · touch · V, S, M · concentration',
-      text: 'You or an ally you touch: next attack within 1 minute has advantage · M: lens, in your component pouch',
-    },
     {
       name: 'Assisted Aim', meta: 'level 1 · action · 30 ft · 1 minute',
       text: 'Up to 3 creatures: +1 to ranged attacks and double range · 1 free cast per long rest',
     },
   ],
   features: [
-    { name: 'Quickstep', text: 'Small · speed 50 · Darkvision 60 ft · Fey Ancestry · Startling Speed (see Play)' },
+    { name: 'Shadar-Kai', text: 'Medium · speed 30 · Darkvision 60 ft · Fey Ancestry · Necrotic resistance · Keen Senses (Perception) · counts as an elf' },
+    { name: 'Trance', text: 'Long rest in 4 hours · then gain 2 weapon or tool proficiencies until your next long rest: Hunting Rifle + 1 of your choice' },
+    { name: 'Blessing of the Raven Queen', text: 'Bonus Action: teleport 30 ft to a space you can see · uses = proficiency bonus per long rest (see Play) · from level 3 also resistance to all damage until your next turn' },
     { name: 'Rogue 1', text: "Sneak Attack 1d6 · Expertise (Perception, Acrobatics) · Thieves' Cant" },
-    { name: 'Weapon Mastery', text: 'shortbow (Vex), shortsword (Vex) · change them after a long rest' },
-    { name: 'Guide', text: 'Magic Initiate (Druid)' },
+    { name: 'Weapon Mastery', text: 'Hunting Rifle (Slow), shortbow (Vex) · change them after a long rest' },
+    { name: 'One of the Taken', text: "Magic Initiate (Druid) · Arcana, Nature · Woodcarver's tools" },
   ],
-  feyAncestry: "Fey Ancestry: advantage on saves against being Charmed · magic can't put you to sleep",
-  languages: "Common, Elvish, Umbral, Thieves' Cant, plus 1 of your choice (not picked yet)",
-  armorWeapons: 'Armor: light · Weapons: simple, martial with Finesse or Light',
-  nextLevel: 'Next level: Fighter 1 adds Archery (+2 ranged to hit) and Second Wind',
+  // Last line of the abilities box on the Play tab.
+  traitsLine: 'Fey Ancestry: advantage vs Charmed · resistant to Necrotic · Trance: re-pick the Hunting Rifle',
+  languages: "Common, Elvish, Thieves' Cant, plus 2 of your choice (not picked yet)",
+  armorWeapons: 'Armor: light · Weapons: simple, martial with Finesse or Light, Hunting Rifle (from Trance)',
+  nextLevel: 'Next level: Rogue 2 adds Cunning Action (Dash, Disengage or Hide as a Bonus Action)',
 
   gearDefaults: {
-    equipped: ['Studded leather armor (AC 12 + Dex)', 'Shortbow and quiver', 'Shortsword', 'Dagger'],
+    equipped: ['Hunting Rifle (5 shots, reload as an action or Bonus Action)', 'Studded leather armor (AC 12 + Dex)', 'Shortbow, quiver and 20 arrows', 'Dagger'],
     pack: [
-      'Component pouch',
       "Thieves' tools",
       "Explorer's pack: backpack, bedroll, 2 flasks of oil, 10 days of rations, rope, tinderbox, 10 torches, waterskin",
     ],
   },
-  coinDefaults: { cp: 0, sp: 0, ep: 0, gp: 5, pp: 0 },
-  arrowsDefault: 40,
+  coinDefaults: { cp: 0, sp: 0, ep: 0, gp: 35, pp: 0 },
+  // A device still holding the untouched Quickstep defaults gets the new ones instead.
+  legacyDefaults: [
+    {
+      gear: {
+        equipped: ['Studded leather armor (AC 12 + Dex)', 'Shortbow and quiver', 'Shortsword', 'Dagger'],
+        pack: [
+          'Component pouch',
+          "Thieves' tools",
+          "Explorer's pack: backpack, bedroll, 2 flasks of oil, 10 days of rations, rope, tinderbox, 10 torches, waterskin",
+        ],
+      },
+      coins: { cp: 0, sp: 0, ep: 0, gp: 5, pp: 0 },
+    },
+  ],
   attunementSlots: 3,
-  rifleGoal: 1000,
 };

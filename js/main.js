@@ -74,10 +74,6 @@ export function mount(root, { character: c, storage, now = () => new Date() }) {
       const title = root.querySelector('.title b');
       if (title) title.textContent = el.value.trim() || c.name;
     }
-    if (action.type === 'setCoin') {
-      const fund = root.querySelector('#rifle-fund');
-      if (fund) fund.textContent = `Rifle fund ${state.coins.gp} / ${c.rifleGoal} gp`;
-    }
   }
 
   async function onImport(event) {
@@ -167,9 +163,9 @@ export function mount(root, { character: c, storage, now = () => new Date() }) {
         return;
       }
       case 'toggle': dispatch({ type: 'toggle', key: arg }); return;
-      case 'condition': dispatch({ type: 'toggleCondition', name: arg }); return;
-      case 'exhaustion': dispatch({ type: 'exhaustion', delta: Number(arg) }); return;
-      case 'arrows': dispatch({ type: 'arrows', delta: Number(arg) }); return;
+      case 'shot': dispatch({ type: 'toggleShot', index: Number(arg) }); return;
+      case 'reload': dispatch({ type: 'reload' }); return;
+      case 'bullets': dispatch({ type: 'bullets', delta: Number(arg) }); return;
       case 'export': onExport(); return;
       case 'import': root.querySelector('#import-file')?.click(); return;
       default:

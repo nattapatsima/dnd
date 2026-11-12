@@ -58,6 +58,9 @@ for (const [width, height] of SIZES) {
     const amountFont = parseFloat(win.getComputedStyle(doc.querySelector('#amount')).fontSize);
     const bodyFont = parseFloat(win.getComputedStyle(doc.body).fontSize);
     const labelFont = parseFloat(win.getComputedStyle(doc.querySelector('.label')).fontSize);
+    const abilityFont = parseFloat(win.getComputedStyle(doc.querySelector('.ab-grid b')).fontSize);
+    const abilityLabelFont = parseFloat(win.getComputedStyle(doc.querySelector('.ab-grid .label')).fontSize);
+    const traitsFont = parseFloat(win.getComputedStyle(doc.querySelector('[data-box="abilities"] > .label')).fontSize);
     doc.querySelector('[data-action="undo"]')?.click();
     const smallTargets = [...doc.querySelectorAll('button, [data-action]')]
       .filter((el) => { const box = el.getBoundingClientRect(); return box.width > 0 && box.height < 44; }).length;
@@ -66,13 +69,15 @@ for (const [width, height] of SIZES) {
     doc.querySelector('[data-action="tab"][data-arg="notes"]').click();
     const importBtn = doc.querySelector('[data-action="import"]');
     const importOneLine = importBtn && importBtn.getBoundingClientRect().height <= 46;
-    window.__fit.push({ size: `${width} × ${height}`, fits, calm, busy, wide, smallTargets, amountFont, bodyFont, labelFont, importOneLine });
+    window.__fit.push({ size: `${width} × ${height}`, fits, calm, busy, wide, smallTargets, amountFont, bodyFont, labelFont, abilityFont, abilityLabelFont, traitsFont, importOneLine });
     frame.remove();
     ok(fits, `content ends at ${calm}, busy ${busy} (needs ≤ ${height - SLACK}), width ${wide}`);
     ok(smallTargets === 0, `${smallTargets} touch targets under 44 px`);
     ok(bodyFont >= 16, `body text ${bodyFont} px (needs at least 16 px to read at the table)`);
     ok(labelFont >= 13, `labels ${labelFont} px (needs at least 13 px)`);
     ok(importOneLine, 'Import backup button fits on one line');
+    ok(abilityFont >= 26 && abilityLabelFont >= 16, `ability box ${abilityFont} px numbers, ${abilityLabelFont} px labels`);
+    ok(traitsFont === labelFont, `traits line ${traitsFont} px stays at label size ${labelFont} px`);
     ok(amountFont >= 16, `Amount field font ${amountFont} px (under 16 px makes the iPad zoom on tap)`);
   });
 }

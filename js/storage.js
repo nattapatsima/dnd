@@ -16,6 +16,8 @@ const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
 // A flag array of length n, keeping whatever was set in the old array.
 const fitFlags = (old, n) => Array.from({ length: n }, (_, i) => Boolean(Array.isArray(old) && old[i]));
 const strings = (v, fallback) => (Array.isArray(v) && v.every((x) => typeof x === 'string') ? [...v] : fallback);
+// Same plain data (key order matters, which holds for anything this app saved).
+const same = (a, b) => a !== undefined && JSON.stringify(a) === JSON.stringify(b);
 
 export function loadState(storage, c) {
   let raw;
@@ -75,15 +77,15 @@ export function migrateState(raw, c) {
   for (const key of Object.keys(s.toggles)) {
     if (isObject(r.toggles) && typeof r.toggles[key] === 'boolean') s.toggles[key] = r.toggles[key];
   }
-  for (const name of Object.keys(s.conditions)) {
-    if (isObject(r.conditions) && typeof r.conditions[name] === 'boolean') s.conditions[name] = r.conditions[name];
-  }
-  if (isCount(r.exhaustion)) s.exhaustion = clamp(r.exhaustion, 0, 6);
-  if (isCount(r.arrows)) s.arrows = r.arrows;
+  // Arrows from the Quickstep build are not carried over; the rifle starts with its defaults.
+  s.shotsFired = fitFlags(r.shotsFired, c.rifle.shots);
+  if (isCount(r.bullets)) s.bullets = r.bullets;
+  // Gear and coins the player never touched follow the build; anything edited is kept.
+  const untouched = (key) => (c.legacyDefaults ?? []).some((d) => same(r[key], d[key]));
   for (const coin of Object.keys(s.coins)) {
-    if (isObject(r.coins) && isCount(r.coins[coin])) s.coins[coin] = r.coins[coin];
+    if (!untouched('coins') && isObject(r.coins) && isCount(r.coins[coin])) s.coins[coin] = r.coins[coin];
   }
-  if (isObject(r.gear)) {
+  if (!untouched('gear') && isObject(r.gear)) {
     s.gear.equipped = strings(r.gear.equipped, s.gear.equipped);
     s.gear.pack = strings(r.gear.pack, s.gear.pack);
   }

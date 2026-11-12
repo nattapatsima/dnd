@@ -2,7 +2,8 @@
 import { resourceMax } from './derive.js';
 
 // 2: hit dice are tracked per die type ({ d8: [...], d10: [...] }).
-export const STATE_VERSION = 2;
+// 3: arrows replaced by rifle shots (shotsFired flags) and spare bullets; conditions and exhaustion removed.
+export const STATE_VERSION = 3;
 
 const flags = (n) => Array(n).fill(false);
 const clearedSaves = () => ({ success: flags(3), failure: flags(3) });
@@ -19,9 +20,8 @@ export function defaultState(c) {
     hitDiceSpent: hitDiceFlags(c),
     uses: Object.fromEntries(c.resources.map((r) => [r.id, flags(resourceMax(c, r))])),
     toggles: { advantage: false, assistedAim: false, inspiration: false },
-    conditions: Object.fromEntries(c.conditions.map((name) => [name, false])),
-    exhaustion: 0,
-    arrows: c.arrowsDefault,
+    shotsFired: flags(c.rifle.shots),
+    bullets: c.bulletsDefault,
     coins: { ...c.coinDefaults },
     gear: { equipped: [...c.gearDefaults.equipped], pack: [...c.gearDefaults.pack] },
     notes: { name: '', alignment: '', bio: '', session: '' },
@@ -39,8 +39,6 @@ export function parseAmount(text) {
   const n = wholeNumber(text);
   return n !== null && n > 0 ? n : null;
 }
-
-const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
 
 export function reduce(state, action, c) {
   const s = structuredClone(state);
@@ -96,10 +94,9 @@ export function reduce(state, action, c) {
       for (const die of Object.keys(s.hitDiceSpent)) s.hitDiceSpent[die] = s.hitDiceSpent[die].map(() => false);
       for (const id of Object.keys(s.uses)) s.uses[id] = s.uses[id].map(() => false);
       s.deathSaves = clearedSaves();
-      s.exhaustion = Math.max(0, s.exhaustion - 1);
       s.toggles.advantage = false;
       s.toggles.assistedAim = false;
-      return done(`Long rest: HP, hit ${hitDieWord(c)} and daily uses restored.`, true);
+      return done(`Long rest: HP, hit ${hitDieWord(c)} and daily uses restored.${c.longRestNote ? ` ${c.longRestNote}` : ''}`, true);
     case 'toggleDeathSave':
       s.deathSaves[action.kind][action.index] = !s.deathSaves[action.kind][action.index];
       return done();
@@ -112,14 +109,27 @@ export function reduce(state, action, c) {
     case 'toggle':
       s.toggles[action.key] = !s.toggles[action.key];
       return done();
-    case 'toggleCondition':
-      s.conditions[action.name] = !s.conditions[action.name];
+    case 'toggleShot':
+      s.shotsFired[action.index] = !s.shotsFired[action.index];
       return done();
-    case 'exhaustion':
-      s.exhaustion = clamp(s.exhaustion + action.delta, 0, 6);
-      return done();
-    case 'arrows':
-      s.arrows = Math.max(0, s.arrows + action.delta);
+    case 'reload': {
+      // Fill the fired slots from the spare bullets.
+      const empty = s.shotsFired.filter(Boolean).length;
+      if (empty === 0) return done('The rifle is already loaded.');
+      if (s.bullets === 0) return done('No spare bullets to reload with.');
+      let take = Math.min(empty, s.bullets);
+      s.bullets -= take;
+      s.shotsFired = s.shotsFired.map((fired) => {
+        if (fired && take > 0) {
+          take -= 1;
+          return false;
+        }
+        return fired;
+      });
+      return done(`Reloaded. ${s.bullets} spare bullet${s.bullets === 1 ? '' : 's'} left.`, true);
+    }
+    case 'bullets':
+      s.bullets = Math.max(0, s.bullets + action.delta);
       return done();
     case 'setCoin': {
       const n = wholeNumber(action.value);

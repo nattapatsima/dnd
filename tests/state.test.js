@@ -7,9 +7,10 @@ const r = (s, a) => reduce(s, a, c);
 
 test('default state', () => {
   eq(s0.hp, { current: 9, temp: 0, max: 9 });
-  eq(s0.arrows, 40);
-  eq(s0.coins.gp, 5);
-  eq(s0.uses.startling, [false]);
+  eq(s0.shotsFired, [false, false, false, false, false]);
+  eq(s0.bullets, 15);
+  eq(s0.coins.gp, 35);
+  eq(s0.uses.ravenQueen, [false, false]);
 });
 
 test('parseAmount', () => eq(['7', ' 12 ', '', '0', '-3', '3.5', 'abc', '999'].map(parseAmount), [7, 12, null, null, null, null, null, 999]));
@@ -42,33 +43,50 @@ test('short rest at level 1', () => {
 
 test('long rest', () => {
   let s = r(s0, { type: 'damage', amount: 6 }).state;
-  s = r(s, { type: 'toggleUse', id: 'startling', index: 0 }).state;
-  s = r(s, { type: 'exhaustion', delta: 1 }).state;
-  s = r(s, { type: 'exhaustion', delta: 1 }).state;
+  s = r(s, { type: 'toggleUse', id: 'ravenQueen', index: 0 }).state;
   s = r(s, { type: 'toggle', key: 'assistedAim' }).state;
   s = r(s, { type: 'toggle', key: 'inspiration' }).state;
-  s = r(s, { type: 'toggleCondition', name: 'Prone' }).state;
   const o = r(s, { type: 'longRest' });
   eq(o.state.hp, { current: 9, temp: 0, max: 9 });
-  eq(o.state.uses.startling, [false]);
-  eq(o.state.exhaustion, 1);
+  eq(o.state.uses.ravenQueen, [false, false]);
   eq(o.state.toggles, { advantage: false, assistedAim: false, inspiration: true });
-  eq(o.state.conditions.Prone, true);
-  eq(o.message, 'Long rest: HP, hit die and daily uses restored.');
+  eq(o.message, 'Long rest: HP, hit die and daily uses restored. Trance: pick the Hunting Rifle again.');
 });
 
 test('counters clamp', () => {
-  eq(r({ ...s0, arrows: 0 }, { type: 'arrows', delta: -1 }).state.arrows, 0);
-  eq(r({ ...s0, exhaustion: 6 }, { type: 'exhaustion', delta: 1 }).state.exhaustion, 6);
+  eq(r({ ...s0, bullets: 0 }, { type: 'bullets', delta: -1 }).state.bullets, 0);
+});
+
+const fire = (s, ...indexes) => indexes.reduce((acc, index) => r(acc, { type: 'toggleShot', index }).state, s);
+
+test('reload refills fired shots from spare bullets', () => {
+  const o = r(fire(s0, 0, 1, 2), { type: 'reload' });
+  eq(o.state.shotsFired, [false, false, false, false, false]);
+  eq(o.state.bullets, 12);
+  eq(o.message, 'Reloaded. 12 spare bullets left.');
+  eq(o.undoable, true);
+});
+
+test('reload with too few bullets loads what it can', () => {
+  const o = r(fire({ ...s0, bullets: 2 }, 0, 1, 2), { type: 'reload' });
+  eq(o.state.shotsFired.filter(Boolean).length, 1);
+  eq(o.state.bullets, 0);
+  eq(r(o.state, { type: 'reload' }).message, 'No spare bullets to reload with.');
+});
+
+test('reload when full does nothing', () => {
+  const o = r(s0, { type: 'reload' });
+  eq(o.message, 'The rifle is already loaded.');
+  eq(o.state.bullets, 15);
 });
 
 test('coins accept whole numbers only', () => {
   eq(r(s0, { type: 'setCoin', coin: 'gp', value: '12' }).state.coins.gp, 12);
-  eq(r(s0, { type: 'setCoin', coin: 'gp', value: '-2' }).state.coins.gp, 5);
+  eq(r(s0, { type: 'setCoin', coin: 'gp', value: '-2' }).state.coins.gp, 35);
 });
 
 test('undoable flags', () => eq(
-  ['toggle', 'arrows', 'damage'].map((t) => r(s0, { type: t, key: 'advantage', delta: 1, amount: 1 }).undoable),
+  ['toggle', 'bullets', 'damage'].map((t) => r(s0, { type: t, key: 'advantage', delta: 1, amount: 1 }).undoable),
   [false, false, true],
 ));
 

@@ -63,7 +63,11 @@ export function cantripDice(level) {
   return 1;
 }
 
-export const resourceMax = (c, resource) => (resource.max === 'level' ? c.level : resource.max);
+export function resourceMax(c, resource) {
+  if (resource.max === 'level') return c.level;
+  if (resource.max === 'prof') return profBonus(c.level);
+  return resource.max;
+}
 
 // Assisted Aim and rangedBonus (Archery) only apply to ranged weapons, not thrown melee weapons.
 export function toHit(c, attack, { assistedAim = false } = {}) {
@@ -83,10 +87,4 @@ export function damageText(c, attack, { compact = false } = {}) {
   const dice = [attack.die];
   if (attack.cantripDie) dice.push(`${cantripDice(c.level)}${attack.cantripDie}`);
   return compact ? `${dice.join('+')}${sign}${Math.abs(m)}` : `${dice.join(' + ')} ${sign} ${Math.abs(m)}`;
-}
-
-export function exhaustionText(level) {
-  if (level <= 0) return 'No penalty';
-  if (level >= 6) return 'Dead';
-  return `d20 tests −${2 * level} · speed −${5 * level} ft`;
 }

@@ -20,5 +20,5 @@ test('no external requests', async () => {
 
 test('manifest names the Home Screen app', async () => {
   const m = await (await fetch('../manifest.webmanifest')).json();
-  eq([m.name, m.short_name, m.display, m.start_url], ['Quickstep Sniper', 'Quickstep', 'standalone', './']);
+  eq([m.name, m.short_name, m.display, m.start_url], ['Phantom Sniper', 'Sniper', 'standalone', './']);
 });
