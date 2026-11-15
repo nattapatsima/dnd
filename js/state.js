@@ -3,7 +3,8 @@ import { resourceMax } from './derive.js';
 
 // 2: hit dice are tracked per die type ({ d8: [...], d10: [...] }).
 // 3: arrows replaced by rifle shots (shotsFired flags) and spare bullets; conditions and exhaustion removed.
-export const STATE_VERSION = 3;
+// 4: Shadow Bind choice (bind) and the Trance second pick (trancePick); coldStrike toggle became bind.
+export const STATE_VERSION = 4;
 
 const flags = (n) => Array(n).fill(false);
 const clearedSaves = () => ({ success: flags(3), failure: flags(3) });
@@ -19,7 +20,11 @@ export function defaultState(c) {
     deathSaves: clearedSaves(),
     hitDiceSpent: hitDiceFlags(c),
     uses: Object.fromEntries(c.resources.map((r) => [r.id, flags(resourceMax(c, r))])),
-    toggles: { advantage: false, assistedAim: false, inspiration: false, coldStrike: false },
+    toggles: { advantage: false, assistedAim: false, inspiration: false, moved: false },
+    // Shadow Bind for the day: 'cold', 'cover' or null.
+    bind: null,
+    // Trance second proficiency: an id from js/trance-options.js, or '' for none.
+    trancePick: '',
     shotsFired: flags(c.rifle.shots),
     bullets: c.bulletsDefault,
     coins: { ...c.coinDefaults },
@@ -96,6 +101,7 @@ export function reduce(state, action, c) {
       s.deathSaves = clearedSaves();
       s.toggles.advantage = false;
       s.toggles.assistedAim = false;
+      s.toggles.moved = false;
       return done(`Long rest: HP, hit ${hitDieWord(c)} and daily uses restored.${c.longRestNote ? ` ${c.longRestNote}` : ''}`, true);
     case 'toggleDeathSave':
       s.deathSaves[action.kind][action.index] = !s.deathSaves[action.kind][action.index];
@@ -105,6 +111,14 @@ export function reduce(state, action, c) {
       return done();
     case 'toggleUse':
       s.uses[action.id][action.index] = !s.uses[action.id][action.index];
+      return done();
+    case 'setBind':
+      // Tapping the bound option again clears it.
+      s.bind = s.bind === action.bind ? null : action.bind;
+      if (s.bind !== 'cover') s.toggles.moved = false;
+      return done();
+    case 'setTrance':
+      s.trancePick = String(action.id ?? '');
       return done();
     case 'toggle':
       s.toggles[action.key] = !s.toggles[action.key];

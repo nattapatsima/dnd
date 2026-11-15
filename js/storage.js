@@ -1,6 +1,6 @@
 // Saving table state on the device, carrying it across updates, and backup files.
 import { defaultState, STATE_VERSION } from './state.js';
-import { resourceMax } from './derive.js';
+import { resourceMax, tranceChoice } from './derive.js';
 
 export const STORAGE_KEY = 'quickstep-sheet/state';
 export const CORRUPT_KEY = 'quickstep-sheet/corrupt';
@@ -80,6 +80,9 @@ export function migrateState(raw, c) {
   // Arrows from the Quickstep build are not carried over; the rifle starts with its defaults.
   s.shotsFired = fitFlags(r.shotsFired, c.rifle.shots);
   if (isCount(r.bullets)) s.bullets = r.bullets;
+  if (r.bind === 'cold' || r.bind === 'cover') s.bind = r.bind;
+  else if (isObject(r.toggles) && r.toggles.coldStrike === true) s.bind = 'cold';
+  if (typeof r.trancePick === 'string' && (tranceChoice(r.trancePick).weapon || tranceChoice(r.trancePick).tool)) s.trancePick = r.trancePick;
   // Gear and coins the player never touched follow the build; anything edited is kept.
   const untouched = (key) => (c.legacyDefaults ?? []).some((d) => same(r[key], d[key]));
   for (const coin of Object.keys(s.coins)) {

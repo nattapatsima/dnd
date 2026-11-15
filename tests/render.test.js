@@ -5,7 +5,7 @@ import { renderPlay } from '../js/render-play.js';
 import { renderChecks, renderFeatures, renderGear, renderNotes } from '../js/render-tabs.js';
 
 test('checks tab', () => {
-  const h = renderChecks(c);
+  const h = renderChecks(c, defaultState(c));
   for (const t of ['Strength 8 · −1', 'Acrobatics ●●', "Thieves' tools · pick a lock or disarm a trap, DC 15",
     'Perception 17 · Insight 15 · Investigation 12', 'Common, Elvish, Sylvan, Undercommon', "Woodcarver's tools · carve a pattern in wood, DC 10"]) ok(h.includes(t), t);
 });
@@ -32,9 +32,9 @@ test('notes tab', () => {
 test('play tab level 3 content', () => {
   const h = renderPlay(c, defaultState(c), {});
   for (const t of [
-    'd20 +5', '2d10 + 3', '+2d6', 'Cold strike', '80 / 240 ft · Slow: a hit cuts its speed by 10 ft',
+    'd20 +5', '2d10 + 3', '+2d6', 'Shadow Bind', 'Trance · Rifle +', '80 / 240 ft · Slow: a hit cuts its speed by 10 ft',
     'Shot · Hunting Rifle', 'Shortbow, Vex', '+5 · 1d6+3', '+5 · 1d4+3', '<b>120 ft</b>', 'Size M', 'Hit dice 3d8 + 1',
-    'Raven Queen teleport', 'Bonus Action: teleport 30 ft + resistance to all damage until your next turn', 'Reload · <span id="bullets">15</span>',
+    'Raven Queen teleport', 'Bonus Action: teleport 30 ft, resist all damage', 'Reload · <span id="bullets">15</span>',
     'Perception +7 ●●', 'save +5 ●',
   ]) ok(h.includes(t), t);
   ok(!h.includes('Sneak Attack needs'), 'no Sneak Attack rule line');
@@ -59,7 +59,7 @@ test('toggles change to-hit', () => {
   ok(h.includes('d20 +5'), 'shot stays +5 with Assisted Aim');
   ok(h.includes('+5 · 1d6+3'), 'shortbow stays +5');
   ok(!h.includes('+ 2 cold'), 'no cold damage until Cold strike is on');
-  ok(renderPlay(c, { ...s, toggles: { ...s.toggles, coldStrike: true } }, {}).includes('2d10 + 3 + 2 cold'), 'cold strike adds +2 cold');
+  ok(renderPlay(c, { ...s, bind: 'cold' }, {}).includes('2d10 + 3 + 2 cold'), 'cold bind adds +2 cold');
 });
 
 test('Assisted Aim doubles the shot range', () => {
@@ -86,4 +86,25 @@ test('five rifle shot dots, fired ones hollow', () => {
 
 test('amount field opens the numeric keypad', () => {
   ok(renderPlay(c, defaultState(c), {}).includes('inputmode="numeric"'));
+});
+
+test('Shadow cover after moving: AC 17 and Dex save +7', () => {
+  const s = defaultState(c);
+  const el = document.createElement('div');
+  el.innerHTML = renderPlay(c, { ...s, bind: 'cover', toggles: { ...s.toggles, moved: true } }, {});
+  ok(el.querySelector('.stats').textContent.includes('17'), 'AC 17');
+  ok(el.querySelector('[data-box="abilities"]').textContent.includes('save +7'), 'Dex save +7');
+  ok(el.querySelector('[data-action="toggle"][data-arg="moved"]'), 'Moved chip shown with cover');
+  el.innerHTML = renderPlay(c, { ...s, bind: 'cold' }, {});
+  ok(!el.querySelector('[data-arg="moved"]'), 'no Moved chip with cold');
+});
+
+test('Trance dropdown lists every option and shows the pick', () => {
+  const el = document.createElement('div');
+  el.innerHTML = renderPlay(c, { ...defaultState(c), trancePick: 'longbow' }, {});
+  const select = el.querySelector('[data-trance]');
+  ok(select.options.length === 55, `${select.options.length} options`);
+  ok(select.value === 'longbow', 'longbow selected');
+  ok(el.textContent.includes('Longbow (Trance)'), 'longbow in Other attacks');
+  ok(renderChecks(c, { ...defaultState(c), trancePick: 'disguise-kit' }).includes('Disguise Kit (Trance)'), 'tool on Checks tab');
 });

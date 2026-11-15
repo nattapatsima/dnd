@@ -49,7 +49,7 @@ test('long rest', () => {
   const o = r(s, { type: 'longRest' });
   eq(o.state.hp, { current: 21, temp: 0, max: 21 });
   eq(o.state.uses.ravenQueen, [false, false]);
-  eq(o.state.toggles, { advantage: false, assistedAim: false, inspiration: true, coldStrike: false });
+  eq(o.state.toggles, { advantage: false, assistedAim: false, inspiration: true, moved: false });
   eq(o.message, 'Long rest: HP, hit dice and daily uses restored. Trance: pick the Hunting Rifle again.');
 });
 
@@ -120,4 +120,21 @@ test('reduce does not mutate its input', () => {
   r(s0, { type: 'longRest' });
   r(s0, { type: 'setGear', list: 'pack', lines: ['Rope'] });
   ok(JSON.stringify(s0) === before, 'input state unchanged');
+});
+
+test('Shadow Bind: pick, switch and clear', () => {
+  let s = r(s0, { type: 'setBind', bind: 'cover' }).state;
+  s = r(s, { type: 'toggle', key: 'moved' }).state;
+  eq([s.bind, s.toggles.moved], ['cover', true]);
+  s = r(s, { type: 'setBind', bind: 'cold' }).state;
+  eq([s.bind, s.toggles.moved], ['cold', false], 'switching away from cover clears Moved');
+  eq(r(s, { type: 'setBind', bind: 'cold' }).state.bind, null, 'tapping the bound chip clears it');
+});
+
+test('long rest keeps the bind and Trance pick, clears Moved', () => {
+  let s = r(s0, { type: 'setBind', bind: 'cover' }).state;
+  s = r(s, { type: 'toggle', key: 'moved' }).state;
+  s = r(s, { type: 'setTrance', id: 'longbow' }).state;
+  const o = r(s, { type: 'longRest' }).state;
+  eq([o.bind, o.trancePick, o.toggles.moved], ['cover', 'longbow', false]);
 });

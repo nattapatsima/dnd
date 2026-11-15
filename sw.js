@@ -1,5 +1,5 @@
 // Offline cache for the sheet. Bump CACHE together with CHARACTER.buildVersion on every publish.
-const CACHE = 'quickstep-v4';
+const CACHE = 'quickstep-v5';
 const ASSETS = [
   './',
   './index.html',
@@ -7,6 +7,7 @@ const ASSETS = [
   './js/boot.js',
   './js/main.js',
   './js/character.js',
+  './js/trance-options.js',
   './js/derive.js',
   './js/state.js',
   './js/storage.js',

@@ -1,4 +1,5 @@
 // Pure functions that turn build data (js/character.js) into the numbers the sheet shows.
+import { TRANCE_TOOLS, TRANCE_WEAPONS } from './trance-options.js';
 
 export const SKILLS = {
   athletics: { name: 'Athletics', ability: 'str' },
@@ -46,9 +47,33 @@ export function skillMark(c, id) {
 export const passive = (c, id) => 10 + skillBonus(c, id);
 
 export function toolBonus(c, id) {
-  const tool = c.tools.find((t) => t.id === id);
+  const tool = c.tools.find((t) => t.id === id) ?? TRANCE_TOOLS.find((t) => t.id === id);
   return mod(c, tool.ability) + prof(c);
 }
+
+// The Trance second pick: { weapon } or { tool } or {} when nothing is picked.
+export function tranceChoice(id) {
+  const weapon = TRANCE_WEAPONS.find((w) => w.id === id);
+  if (weapon) return { weapon };
+  const tool = TRANCE_TOOLS.find((t) => t.id === id);
+  return tool ? { tool } : {};
+}
+
+// Tools shown on the Checks tab: the build's own plus a Trance tool.
+export const toolsWithTrance = (c, state) => [...c.tools, ...(tranceChoice(state.trancePick).tool ? [tranceChoice(state.trancePick).tool] : [])];
+
+// Other attacks on the Play tab: the build's own plus a Trance weapon.
+export function otherAttacks(c, state) {
+  const others = c.attacks.filter((a) => !a.main);
+  const { weapon } = tranceChoice(state.trancePick);
+  if (!weapon) return others;
+  const name = weapon.range && weapon.kind === 'melee' ? `${weapon.name} (Trance), thrown ${weapon.range.join('/')}` : `${weapon.name} (Trance)`;
+  return [...others, { id: `trance-${weapon.id}`, name, kind: weapon.kind, ability: weapon.ability, die: weapon.die, range: weapon.range }];
+}
+
+// Shadow Bind effects for the current state.
+export const coldStrikeBonus = (c, state) => (c.shadowBind && state.bind === 'cold' ? prof(c) : 0);
+export const coverBonus = (c, state) => (c.shadowBind && state.bind === 'cover' && state.toggles.moved ? 2 : 0);
 
 export const spellAttack = (c) => mod(c, c.spellcasting.ability) + prof(c);
 export const spellDC = (c) => 8 + spellAttack(c);

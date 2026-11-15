@@ -1,6 +1,6 @@
 // Header and the Checks, Features and spells, Gear and Notes tabs.
 import {
-  SKILLS, abilityMod, fmt, passive, saveBonus, skillBonus, skillMark, spellAttack, spellDC, toolBonus,
+  SKILLS, abilityMod, fmt, passive, saveBonus, skillBonus, skillMark, spellAttack, spellDC, toolBonus, toolsWithTrance,
 } from './derive.js';
 import { esc } from './render-play.js';
 
@@ -16,7 +16,7 @@ export function renderHeader(c, state, activeTab) {
     + `<nav class="tabs">${TABS.map(([id, label]) => `<button class="chip${id === activeTab ? ' on' : ''}" data-action="tab" data-arg="${id}">${label}</button>`).join('')}</nav></header>`;
 }
 
-export function renderChecks(c) {
+export function renderChecks(c, state) {
   const blocks = Object.entries(ABILITY_NAMES).map(([ab, name]) => {
     const skills = Object.entries(SKILLS).filter(([, skill]) => skill.ability === ab);
     return `<div class="panel"><div class="b">${name} ${c.abilities[ab]} · ${fmt(abilityMod(c.abilities[ab]))}</div>`
@@ -25,7 +25,7 @@ export function renderChecks(c) {
       + '</div>';
   }).join('');
   return `<div class="checks">${blocks}</div>
-<div class="panel"><div class="label">Tool checks</div>${c.tools.map((tool) => row(`${esc(tool.name)} · ${esc(tool.use)}`, `<b>${fmt(toolBonus(c, tool.id))}</b>`)).join('')}</div>
+<div class="panel"><div class="label">Tool checks</div>${toolsWithTrance(c, state).map((tool) => row(`${esc(tool.name)}${c.tools.includes(tool) ? '' : ' (Trance)'} · ${esc(tool.use)}`, `<b>${fmt(toolBonus(c, tool.id))}</b>`)).join('')}</div>
 <div class="panel"><div class="label">Passive scores</div><div>Perception ${passive(c, 'perception')} · Insight ${passive(c, 'insight')} · Investigation ${passive(c, 'investigation')}</div></div>
 <div class="panel"><div class="label">Proficiencies and languages</div><div>${esc(c.armorWeapons)}</div><div>${esc(c.languages)}</div></div>`;
 }

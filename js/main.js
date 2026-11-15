@@ -45,7 +45,7 @@ export function mount(root, { character: c, storage, now = () => new Date() }) {
 
   function body() {
     switch (tab) {
-      case 'checks': return renderChecks(c);
+      case 'checks': return renderChecks(c, state);
       case 'features': return renderFeatures(c);
       case 'gear': return renderGear(c, state);
       case 'notes': return renderNotes(c, state, ui);
@@ -163,6 +163,7 @@ export function mount(root, { character: c, storage, now = () => new Date() }) {
         return;
       }
       case 'toggle': dispatch({ type: 'toggle', key: arg }); return;
+      case 'bind': dispatch({ type: 'setBind', bind: arg }); return;
       case 'shot': dispatch({ type: 'toggleShot', index: Number(arg) }); return;
       case 'reload': dispatch({ type: 'reload' }); return;
       case 'bullets': dispatch({ type: 'bullets', delta: Number(arg) }); return;
@@ -175,6 +176,9 @@ export function mount(root, { character: c, storage, now = () => new Date() }) {
   root.addEventListener('click', onTap);
   root.addEventListener('input', onInput);
   root.addEventListener('change', onImport);
+  root.addEventListener('change', (event) => {
+    if (event.target.dataset && 'trance' in event.target.dataset) dispatch({ type: 'setTrance', id: event.target.value });
+  });
   window.addEventListener('pagehide', save);
   render();
   return { getState: () => state, now };

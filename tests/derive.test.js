@@ -57,3 +57,24 @@ test('rangeText doubles only with Assisted Aim', () => eq(
   [d.rangeText(attack('shot'), {}), d.rangeText(attack('shot'), { assistedAim: true })],
   ['80 / 240 ft', '160 / 480 ft'],
 ));
+
+test('Trance weapon joins the other attacks', () => {
+  const s = (id) => ({ trancePick: id });
+  const bow = d.otherAttacks(c, s('longbow')).at(-1);
+  eq([bow.name, d.toHit(c, bow), d.damageText(c, bow, { compact: true })], ['Longbow (Trance)', 5, '1d8+3']);
+  const axe = d.otherAttacks(c, s('battleaxe')).at(-1);
+  eq([d.toHit(c, axe), d.damageText(c, axe, { compact: true })], [1, '1d8−1'], 'Strength weapon');
+  eq(d.otherAttacks(c, s('disguise-kit')).length, c.attacks.length - 1, 'a tool adds no attack');
+});
+
+test('Trance tool joins the tool checks', () => {
+  const tools = d.toolsWithTrance(c, { trancePick: 'disguise-kit' });
+  eq(tools.map((t) => t.name).at(-1), 'Disguise Kit');
+  eq(d.toolBonus(c, 'disguise-kit'), 2);
+});
+
+test('Shadow Bind bonuses', () => {
+  const st = (bind, moved) => ({ bind, toggles: { moved } });
+  eq([d.coldStrikeBonus(c, st('cold', false)), d.coldStrikeBonus(c, st('cover', false))], [2, 0]);
+  eq([d.coverBonus(c, st('cover', true)), d.coverBonus(c, st('cover', false)), d.coverBonus(c, st('cold', true))], [2, 0, 0]);
+});

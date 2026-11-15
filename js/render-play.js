@@ -1,8 +1,9 @@
 // The Play tab: everything needed for a turn on one landscape screen.
 import {
-  SKILLS, abilityMod, damageText, fmt, passive, profBonus,
+  SKILLS, abilityMod, coldStrikeBonus, coverBonus, damageText, fmt, otherAttacks, passive, profBonus,
   rangeText, saveBonus, skillBonus, skillMark, sneakDice, toHit,
 } from './derive.js';
+import { TRANCE_TOOLS, TRANCE_WEAPONS } from './trance-options.js';
 
 // Escape text for HTML. Apostrophes are left alone; attributes always use double quotes.
 export const esc = (value) => String(value).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch]);
@@ -22,10 +23,38 @@ function dots(action, argPrefix, flags, filled, label) {
 
 const stat = (label, value) => `<div><div class="label">${label}</div><b>${value}</b></div>`;
 
+// Shadow Bind: one choice per long rest. Cover needs a 15-ft move in dim light or darkness each turn.
+function shadowBindPanel(c, state) {
+  const cover = state.bind === 'cover';
+  const effect = {
+    cold: `+${profBonus(c.level)} cold, one hit per turn`,
+    cover: state.toggles.moved ? '+2 AC and Dex saves' : 'move 15 ft in the dark: +2 AC',
+  }[state.bind] ?? 'pick after the ritual';
+  return `<div class="panel" data-box="bind">
+      <div class="label">Shadow Bind · ${esc(effect)}</div>
+      <div class="chips">${chip('bind', 'cold', 'Cold', state.bind === 'cold')}${chip('bind', 'cover', 'Cover', cover)}${cover ? chip('toggle', 'moved', 'Moved 15 ft', state.toggles.moved) : ''}</div>
+    </div>`;
+}
+
+// Trance: the rifle is fixed; the second weapon or tool is picked each long rest.
+function trancePanel(state) {
+  const option = (o) => `<option value="${esc(o.id)}"${o.id === state.trancePick ? ' selected' : ''}>${esc(o.name)}</option>`;
+  return `<div class="panel" data-box="trance">
+      <div class="row"><label class="label" for="trance-pick">Trance · Rifle +</label>
+      <select id="trance-pick" data-trance aria-label="Trance second proficiency">
+        <option value=""${state.trancePick ? '' : ' selected'}>Pick one</option>
+        <optgroup label="Weapons">${TRANCE_WEAPONS.map(option).join('')}</optgroup>
+        <optgroup label="Tools">${TRANCE_TOOLS.map(option).join('')}</optgroup>
+      </select></div>
+    </div>`;
+}
+
 export function renderPlay(c, state, ui = {}) {
   const t = state.toggles;
   const shot = c.attacks.find((a) => a.main);
-  const others = c.attacks.filter((a) => !a.main);
+  const others = otherAttacks(c, state);
+  const cold = coldStrikeBonus(c, state);
+  const cover = coverBonus(c, state);
   const hitText = `${t.advantage ? '2d20 high' : 'd20'} ${fmt(toHit(c, shot, { assistedAim: t.assistedAim }))}`;
   const con = abilityMod(c.abilities.con);
   const conText = `${con < 0 ? '−' : '+'} ${Math.abs(con)}`;
@@ -55,7 +84,7 @@ export function renderPlay(c, state, ui = {}) {
       <div class="row"><span>Failure</span><span class="dots">${dots('death-save', 'failure:', state.deathSaves.failure, (f) => f, 'Death save failure')}</span></div>
     </div>
     <div class="panel stats">
-      ${stat('AC', c.ac)}${stat('Init', fmt(abilityMod(c.abilities.dex)))}${stat('Speed', c.speed)}
+      ${stat('AC', c.ac + cover)}${stat('Init', fmt(abilityMod(c.abilities.dex)))}${stat('Speed', c.speed)}
       ${stat('Prof', fmt(profBonus(c.level)))}${stat('Darkvision', `${c.darkvision} ft`)}${stat('Passive', passive(c, 'perception'))}
     </div>
     <div class="row tight"><span class="label">Size ${c.size}</span><span class="label">${hitDice}</span></div>
@@ -65,10 +94,10 @@ export function renderPlay(c, state, ui = {}) {
     <div class="panel">
       <div class="label">Shot · ${esc(shot.name)}</div>
       <div class="row"><span>To hit</span><span class="hit">${hitText}</span></div>
-      <div class="row"><span>Damage</span><b>${damageText(c, shot, {})}${c.coldStrike && t.coldStrike ? ` + ${profBonus(c.level)} cold` : ''}</b></div>
+      <div class="row"><span>Damage</span><b>${damageText(c, shot, {})}${cold ? ` + ${cold} cold` : ''}</b></div>
       ${shot.sneak ? `<div class="row"><span>Sneak Attack</span><b>+${sneakDice(c)}</b></div>` : ''}
       <div class="label">${rangeText(shot, { assistedAim: t.assistedAim })} · ${esc(shot.note)}</div>
-      <div class="chips">${chip('toggle', 'advantage', 'Advantage', t.advantage)}${chip('toggle', 'assistedAim', 'Assisted Aim', t.assistedAim)}${c.coldStrike ? chip('toggle', 'coldStrike', 'Cold strike', t.coldStrike) : ''}</div>
+      <div class="chips">${chip('toggle', 'advantage', 'Advantage', t.advantage)}${chip('toggle', 'assistedAim', 'Assisted Aim', t.assistedAim)}</div>
     </div>
     <div class="panel">
       <div class="label">Other attacks</div>
@@ -83,13 +112,15 @@ export function renderPlay(c, state, ui = {}) {
       ${c.resources.map((r) => `<div class="row"><span>${esc(r.name)}</span><span class="dots">${dots('use', `${r.id}:`, state.uses[r.id] ?? [], (f) => !f, r.name)}</span></div>${r.note ? `<div class="label">${esc(r.note)}</div>` : ''}`).join('')}
       <div class="row"><span>Inspiration</span>${chip('toggle', 'inspiration', 'Have it', t.inspiration)}</div>
     </div>
+${c.shadowBind ? shadowBindPanel(c, state) : ''}
+${trancePanel(state)}
     <div class="btnrow rest"><button data-action="short-rest">Short rest</button><button data-action="long-rest">Long rest</button></div>
     <div id="message" class="label msg" role="status"><span>${esc(ui.message ?? '')}</span>${ui.canUndo ? '<button class="link" data-action="undo">Undo</button>' : ''}</div>
   </section>
 </div>
 
 <div class="panel abilities" data-box="abilities">
-  <div class="ab-grid">${ABILITIES.map(([k, label]) => `<div><div class="label">${label} ${c.abilities[k]}</div><b>${fmt(abilityMod(c.abilities[k]))}</b><div class="label">save ${fmt(saveBonus(c, k))}${c.saveProf.includes(k) ? ' ●' : ''}</div></div>`).join('')}</div>
+  <div class="ab-grid">${ABILITIES.map(([k, label]) => `<div><div class="label">${label} ${c.abilities[k]}</div><b>${fmt(abilityMod(c.abilities[k]))}</b><div class="label">save ${fmt(saveBonus(c, k) + (k === 'dex' ? cover : 0))}${c.saveProf.includes(k) ? ' ●' : ''}</div></div>`).join('')}</div>
   <div class="label">${esc(c.traitsLine)}</div>
 </div>
 

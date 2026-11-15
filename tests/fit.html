@@ -50,7 +50,16 @@ for (const [width, height] of SIZES) {
     const bottom = () => Math.ceil(doc.getElementById('app').getBoundingClientRect().bottom
       + parseFloat(win.getComputedStyle(doc.body).paddingBottom));
     const calm = bottom();
-    // Busiest screen: the short-rest message with Undo, plus the amount error.
+    // Busiest screen: Shadow cover with Moved, a Trance weapon (one more attack row),
+    // the short-rest message with Undo, plus the amount error.
+    win.localStorage.clear();
+    doc.querySelector('[data-action="bind"][data-arg="cover"]')?.click();
+    doc.querySelector('[data-action="toggle"][data-arg="moved"]')?.click();
+    const trance = doc.querySelector('[data-trance]');
+    if (trance) {
+      trance.value = 'heavy-crossbow';
+      trance.dispatchEvent(new Event('change', { bubbles: true }));
+    }
     doc.querySelector('[data-action="short-rest"]').click();
     doc.querySelector('[data-action="damage"]').click();
     const busy = bottom();
@@ -62,6 +71,7 @@ for (const [width, height] of SIZES) {
     const abilityLabelFont = parseFloat(win.getComputedStyle(doc.querySelector('.ab-grid .label')).fontSize);
     const traitsFont = parseFloat(win.getComputedStyle(doc.querySelector('[data-box="abilities"] > .label')).fontSize);
     doc.querySelector('[data-action="undo"]')?.click();
+    win.localStorage.clear();
     const smallTargets = [...doc.querySelectorAll('button, [data-action]')]
       .filter((el) => { const box = el.getBoundingClientRect(); return box.width > 0 && box.height < 44; }).length;
     const fits = Math.max(calm, busy) + SLACK <= height && wide <= width;

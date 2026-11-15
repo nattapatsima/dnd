@@ -82,7 +82,7 @@ button:active { transform: scale(0.97); }
 .dot::before { content: ""; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--muted); }
 .dot.on::before { background: var(--accent); border-color: var(--accent); }
 
-input, textarea {
+input, textarea, select {
   font: inherit;
   color: var(--text);
   background: var(--field);
@@ -93,7 +93,7 @@ input, textarea {
   width: 100%;
 }
 /* 16 px or more, so the iPad doesn't zoom in when a field is tapped. */
-input, textarea { font-size: 16px; }
+input, textarea, select { font-size: 16px; }
 .error { color: var(--danger); font-size: 13px; }
 .error:empty { display: none; }
 
@@ -163,3 +163,5 @@ textarea { display: block; resize: vertical; margin-top: 4px; line-height: 1.4; 
 /* Ability box: bigger scores, modifiers and saves at every size. The traits line below keeps label size. */
 .ab-grid .label { font-size: 17px; }
 .ab-grid b { font-size: 28px; line-height: 1.15; }
+
+[data-box="trance"] select { flex: 1; min-width: 0; width: auto; }

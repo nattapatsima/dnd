@@ -107,3 +107,14 @@ test('Quickstep save: edited gear and coins are kept', () => {
   eq(s.gear.pack, ['Rope']);
   eq(s.coins.gp, 42);
 });
+
+test('old cold strike toggle becomes the cold bind', () => {
+  const old = { ...defaultState(c), toggles: { advantage: false, assistedAim: false, inspiration: false, coldStrike: true } };
+  delete old.bind;
+  eq(migrateState(old, c).bind, 'cold');
+});
+
+test('Trance pick survives a reload; unknown picks are dropped', () => {
+  eq(migrateState({ ...defaultState(c), trancePick: 'disguise-kit' }, c).trancePick, 'disguise-kit');
+  eq(migrateState({ ...defaultState(c), trancePick: 'laser-rifle' }, c).trancePick, '');
+});

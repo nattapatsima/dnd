@@ -140,3 +140,14 @@ test('tabs switch the view', () => {
   click(root, 'tab', 'play');
   ok(root.querySelector('#hp'), 'play tab back');
 });
+
+test('Shadow Bind chips and Trance dropdown', () => {
+  const { root, storage } = mountFresh();
+  click(root, 'bind', 'cold');
+  ok(root.textContent.includes('2d10 + 3 + 2 cold'), 'cold damage shown');
+  const select = root.querySelector('[data-trance]');
+  select.value = 'heavy-crossbow';
+  select.dispatchEvent(new Event('change', { bubbles: true }));
+  ok(root.textContent.includes('Heavy Crossbow (Trance)'), 'weapon added');
+  eq([saved(storage).bind, saved(storage).trancePick], ['cold', 'heavy-crossbow']);
+});
