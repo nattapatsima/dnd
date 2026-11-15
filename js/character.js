@@ -1,11 +1,11 @@
 // Build data for the Phantom Sniper. Claude edits this on level-ups; the app never does.
 // Every number shown on the sheet must match Characters/Phantom Sniper.md.
 export const CHARACTER = {
-  buildVersion: 3,
+  buildVersion: 4,
   name: 'Phantom Sniper',
-  level: 1,
-  classLine: 'Rogue 1 · level 1',
-  classes: { rogue: 1 },
+  level: 3,
+  classLine: 'Rogue 3 (Umbral Binder) · level 3',
+  classes: { rogue: 3 },
 
   abilities: { str: 8, dex: 17, con: 13, int: 10, wis: 16, cha: 10 },
   saveProf: ['dex', 'int'],
@@ -21,10 +21,15 @@ export const CHARACTER = {
   ac: 15,
   speed: 30,
   size: 'M',
-  darkvision: 60,
+  darkvision: 120,
   // One entry per die type.
-  hp: { max: 9, hitDice: [{ die: 8, count: 1 }] },
+  // Fixed average: 8 + 1 at level 1, then 5 + 1 per level.
+  hp: { max: 21, hitDice: [{ die: 8, count: 3 }] },
   rangedBonus: 0,
+  // DM ruling: Assisted Aim only doubles range, no +1 to hit.
+  assistedAimBonus: 0,
+  // Shadow Bind cold strike: + proficiency bonus cold damage, once per turn, on days it is bound.
+  coldStrike: true,
   spellcasting: { ability: 'wis', label: 'Magic Initiate (Druid)' },
 
   attacks: [
@@ -43,7 +48,7 @@ export const CHARACTER = {
   resources: [
     {
       id: 'ravenQueen', name: 'Raven Queen teleport', max: 'prof', recharge: 'long',
-      note: 'Bonus Action: teleport 30 ft to a space you can see',
+      note: 'Bonus Action: teleport 30 ft + resistance to all damage until your next turn',
     },
     { id: 'assistedAim', name: 'Assisted Aim', max: 1, recharge: 'long' },
   ],
@@ -52,22 +57,34 @@ export const CHARACTER = {
   spells: [
     {
       name: 'Assisted Aim', meta: 'level 1 · action · 30 ft · 1 minute',
-      text: 'Up to 3 creatures: +1 to ranged attacks and double range · 1 free cast per long rest',
+      text: 'Up to 3 creatures: ranged weapon range doubles (DM: no +1 to hit) · 1 free cast per long rest',
+    },
+    {
+      name: 'Control Flames', meta: 'cantrip · action · 60 ft · S only',
+      text: 'Nonmagical flame in a 5-ft cube: expand 5 ft, put it out, double or halve its light, or shape it',
+    },
+    {
+      name: 'Guidance', meta: 'cantrip · action · touch · V, S · concentration',
+      text: 'A willing creature adds 1d4 to ability checks with one skill you choose, for 1 minute',
     },
   ],
   features: [
-    { name: 'Shadar-Kai', text: 'Medium · speed 30 · Darkvision 60 ft · Fey Ancestry · Necrotic resistance · Keen Senses (Perception) · counts as an elf' },
+    { name: 'Shadar-Kai', text: 'Medium · speed 30 · Fey Ancestry · Necrotic resistance · Keen Senses (Perception) · counts as an elf' },
     { name: 'Trance', text: 'Long rest in 4 hours · then gain 2 weapon or tool proficiencies until your next long rest: Hunting Rifle + 1 of your choice' },
-    { name: 'Blessing of the Raven Queen', text: 'Bonus Action: teleport 30 ft to a space you can see · uses = proficiency bonus per long rest (see Play) · from level 3 also resistance to all damage until your next turn' },
-    { name: 'Rogue 1', text: "Sneak Attack 1d6 · Expertise (Perception, Acrobatics) · Thieves' Cant" },
+    { name: 'Blessing of the Raven Queen', text: 'Bonus Action: teleport 30 ft to a space you can see · uses = proficiency bonus per long rest (see Play) · also resistance to all damage until your next turn' },
+    { name: 'Rogue 3', text: "Sneak Attack 2d6 · Expertise (Perception, Acrobatics) · Thieves' Cant" },
+    { name: 'Cunning Action', text: 'Bonus Action: Dash, Disengage or Hide' },
+    { name: 'Steady Aim', text: "Bonus Action, only if you haven't moved this turn: advantage on your next attack this turn · speed 0 until the turn ends" },
+    { name: 'Eyes in the Dark', text: 'Darkvision 120 ft' },
+    { name: 'Shadow Bind', text: 'Long rest: 1 hour of meditation in nonmagical darkness, then pick one for 24 hours · cold strike: +2 cold on one hit per turn (Cold strike chip on Play) · shadow cover: in dim light or darkness, move 15+ ft for +2 AC and Dex saves until your next turn · shadow teleport not allowed (DM)' },
     { name: 'Weapon Mastery', text: 'Hunting Rifle (Slow), shortbow (Vex) · change them after a long rest' },
     { name: 'One of the Taken', text: "Magic Initiate (Druid) · Arcana, Nature · Woodcarver's tools" },
   ],
   // Last line of the abilities box on the Play tab.
   traitsLine: 'Fey Ancestry: advantage vs Charmed · resistant to Necrotic · Trance: re-pick the Hunting Rifle',
-  languages: "Common, Elvish, Thieves' Cant, plus 2 of your choice (not picked yet)",
+  languages: "Common, Elvish, Sylvan, Undercommon, Thieves' Cant",
   armorWeapons: 'Armor: light · Weapons: simple, martial with Finesse or Light, Hunting Rifle (from Trance)',
-  nextLevel: 'Next level: Rogue 2 adds Cunning Action (Dash, Disengage or Hide as a Bonus Action)',
+  nextLevel: 'Next level: Rogue 4 adds a feat (plan: Sharpshooter, Dex 18)',
 
   gearDefaults: {
     equipped: ['Hunting Rifle (5 shots, reload as an action or Bonus Action)', 'Studded leather armor (AC 12 + Dex)', 'Shortbow, quiver and 20 arrows', 'Dagger'],

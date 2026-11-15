@@ -85,7 +85,7 @@ test('import rejects a wrong file and keeps state', async () => {
   await importFile(root, '{"app":"other"}');
   eq(text(root, '#message'), 'Not a Quickstep backup file');
   click(root, 'tab', 'play');
-  eq(text(root, '#hp'), '6');
+  eq(text(root, '#hp'), '18');
 });
 
 test('import can be undone', async () => {
@@ -96,13 +96,13 @@ test('import can be undone', async () => {
   await importFile(root, JSON.stringify({ app: 'quickstep-sheet', state: { hp: { current: 2, temp: 0, max: 9 } } }));
   click(root, 'undo');
   click(root, 'tab', 'play');
-  eq(text(root, '#hp'), '6');
+  eq(text(root, '#hp'), '18');
 });
 
 test('import restores a backup', async () => {
   const { root } = mountFresh();
   click(root, 'tab', 'notes');
-  await importFile(root, JSON.stringify({ app: 'quickstep-sheet', state: { hp: { current: 2, temp: 0, max: 9 }, notes: { name: 'Pip', alignment: '', bio: '', session: '' } } }));
+  await importFile(root, JSON.stringify({ app: 'quickstep-sheet', state: { hp: { current: 2, temp: 0, max: 21 }, notes: { name: 'Pip', alignment: '', bio: '', session: '' } } }));
   ok(text(root, '#message').startsWith('Backup restored'), 'restored message');
   click(root, 'tab', 'play');
   eq(text(root, '#hp'), '2');
@@ -113,9 +113,9 @@ test('damage, undo and validation', () => {
   const { root } = mountFresh();
   setAmount(root, '4');
   click(root, 'damage');
-  eq(text(root, '#hp'), '5');
+  eq(text(root, '#hp'), '17');
   click(root, 'undo');
-  eq(text(root, '#hp'), '9');
+  eq(text(root, '#hp'), '21');
   click(root, 'damage');
   eq(text(root, '#error'), 'Enter an amount first');
 });

@@ -71,7 +71,7 @@ export function resourceMax(c, resource) {
 
 // Assisted Aim and rangedBonus (Archery) only apply to ranged weapons, not thrown melee weapons.
 export function toHit(c, attack, { assistedAim = false } = {}) {
-  const rangedExtra = attack.kind === 'ranged' ? c.rangedBonus + (assistedAim ? 1 : 0) : 0;
+  const rangedExtra = attack.kind === 'ranged' ? c.rangedBonus + (assistedAim ? (c.assistedAimBonus ?? 1) : 0) : 0;
   return mod(c, attack.ability) + prof(c) + rangedExtra;
 }
 

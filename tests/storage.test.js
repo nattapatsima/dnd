@@ -56,7 +56,7 @@ test('migration on level-up', () => {
 
 test('first-version saved state keeps its spent hit die', () => {
   const v1 = { ...defaultState(c), stateVersion: 1, hp: { current: 5, temp: 0, max: 9 }, hitDiceSpent: [true] };
-  eq(migrateState(v1, c).hitDiceSpent, { d8: [true] });
+  eq(migrateState(v1, c).hitDiceSpent, { d8: [true, false, false] });
   eq(migrateState(v1, level2).hitDiceSpent, { d8: [true], d10: [false] });
 });
 
@@ -80,7 +80,7 @@ test('parseBackup rejects', () => {
 });
 
 test('parseBackup migrates', () => {
-  const s = parseBackup(JSON.stringify({ app: 'quickstep-sheet', state: { hp: { current: 3, temp: 0, max: 9 } } }), c);
+  const s = parseBackup(JSON.stringify({ app: 'quickstep-sheet', state: { hp: { current: 3, temp: 0, max: 21 } } }), c);
   eq(s.hp.current, 3);
   eq(s.bullets, 15);
 });

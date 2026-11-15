@@ -6,7 +6,7 @@ const s0 = defaultState(c);
 const r = (s, a) => reduce(s, a, c);
 
 test('default state', () => {
-  eq(s0.hp, { current: 9, temp: 0, max: 9 });
+  eq(s0.hp, { current: 21, temp: 0, max: 21 });
   eq(s0.shotsFired, [false, false, false, false, false]);
   eq(s0.bullets, 15);
   eq(s0.coins.gp, 35);
@@ -17,13 +17,13 @@ test('parseAmount', () => eq(['7', ' 12 ', '', '0', '-3', '3.5', 'abc', '999'].m
 
 test('temp absorbs damage first', () => {
   const s = r(r(s0, { type: 'temp', amount: 3 }).state, { type: 'damage', amount: 4 }).state;
-  eq([s.hp.temp, s.hp.current], [0, 8]);
+  eq([s.hp.temp, s.hp.current], [0, 20]);
 });
 
 test('damage floors at 0', () => eq(r(s0, { type: 'damage', amount: 999 }).state.hp.current, 0));
 
 test('heal from 0 clears death saves', () => {
-  let s = r(s0, { type: 'damage', amount: 9 }).state;
+  let s = r(s0, { type: 'damage', amount: 21 }).state;
   s = r(s, { type: 'toggleDeathSave', kind: 'failure', index: 0 }).state;
   s = r(s, { type: 'heal', amount: 5 }).state;
   eq(s.hp.current, 5);
@@ -31,13 +31,13 @@ test('heal from 0 clears death saves', () => {
 });
 
 test('heal caps at max; temp keeps the larger', () => {
-  eq(r(s0, { type: 'heal', amount: 4 }).state.hp.current, 9);
+  eq(r(s0, { type: 'heal', amount: 4 }).state.hp.current, 21);
   eq(r(r(s0, { type: 'temp', amount: 5 }).state, { type: 'temp', amount: 2 }).state.hp.temp, 5);
 });
 
-test('short rest at level 1', () => {
+test('short rest at level 3', () => {
   const o = r(s0, { type: 'shortRest' });
-  eq(o.message, 'Nothing recharges on a short rest at level 1. Spend your hit die, then use Heal.');
+  eq(o.message, 'Nothing recharges on a short rest at level 3. Spend your hit dice, then use Heal.');
   eq(o.undoable, true);
 });
 
@@ -47,10 +47,10 @@ test('long rest', () => {
   s = r(s, { type: 'toggle', key: 'assistedAim' }).state;
   s = r(s, { type: 'toggle', key: 'inspiration' }).state;
   const o = r(s, { type: 'longRest' });
-  eq(o.state.hp, { current: 9, temp: 0, max: 9 });
+  eq(o.state.hp, { current: 21, temp: 0, max: 21 });
   eq(o.state.uses.ravenQueen, [false, false]);
-  eq(o.state.toggles, { advantage: false, assistedAim: false, inspiration: true });
-  eq(o.message, 'Long rest: HP, hit die and daily uses restored. Trance: pick the Hunting Rifle again.');
+  eq(o.state.toggles, { advantage: false, assistedAim: false, inspiration: true, coldStrike: false });
+  eq(o.message, 'Long rest: HP, hit dice and daily uses restored. Trance: pick the Hunting Rifle again.');
 });
 
 test('counters clamp', () => {
@@ -99,7 +99,7 @@ const level2 = {
 };
 
 test('hit dice are tracked per die type', () => {
-  eq(defaultState(c).hitDiceSpent, { d8: [false] });
+  eq(defaultState(c).hitDiceSpent, { d8: [false, false, false] });
   const s = reduce(defaultState(level2), { type: 'toggleHitDie', die: 'd10', index: 0 }, level2).state;
   eq(s.hitDiceSpent, { d8: [false], d10: [true] });
   eq(reduce(s, { type: 'longRest' }, level2).state.hitDiceSpent, { d8: [false], d10: [false] });

@@ -19,7 +19,7 @@ export function defaultState(c) {
     deathSaves: clearedSaves(),
     hitDiceSpent: hitDiceFlags(c),
     uses: Object.fromEntries(c.resources.map((r) => [r.id, flags(resourceMax(c, r))])),
-    toggles: { advantage: false, assistedAim: false, inspiration: false },
+    toggles: { advantage: false, assistedAim: false, inspiration: false, coldStrike: false },
     shotsFired: flags(c.rifle.shots),
     bullets: c.bulletsDefault,
     coins: { ...c.coinDefaults },

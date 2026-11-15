@@ -25,17 +25,21 @@ test('passives and tools', () => eq(
 test('spellcasting', () => eq([d.spellDC(c), d.spellAttack(c)], [13, 5]));
 
 test('sneak and cantrip dice', () => {
-  eq(d.sneakDice(c), '1d6');
+  eq(d.sneakDice(c), '2d6');
   eq(d.sneakDice({ ...c, classes: { rogue: 5 } }), '3d6');
   eq([1, 4, 5, 11, 17].map(d.cantripDice), [1, 1, 2, 3, 4]);
 });
 
-test('to-hit with Assisted Aim', () => eq([
+test('to-hit with Assisted Aim (DM: range only)', () => eq([
   d.toHit(c, attack('shot'), {}),
   d.toHit(c, attack('shot'), { assistedAim: true }),
   d.toHit(c, attack('shortbow'), { assistedAim: true }),
   d.toHit(c, attack('dagger'), { assistedAim: true }),
-], [5, 6, 6, 5]));
+], [5, 5, 5, 5]));
+
+test('Assisted Aim +1 only when the build allows it', () => eq(
+  d.toHit({ ...c, assistedAimBonus: undefined }, attack('shot'), { assistedAim: true }), 6,
+));
 
 test('damage text', () => {
   eq(d.damageText(c, attack('shot'), {}), '2d10 + 3');

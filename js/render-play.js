@@ -31,9 +31,13 @@ export function renderPlay(c, state, ui = {}) {
   const conText = `${con < 0 ? '−' : '+'} ${Math.abs(con)}`;
   const dice = c.hp.hitDice;
   const dieDots = (h) => dots('hit-die', `d${h.die}:`, state.hitDiceSpent[`d${h.die}`] ?? [], (f) => !f, `d${h.die} hit die`);
-  const hitDice = dice.length === 1 && dice[0].count === 1
-    ? `Hit die 1d${dice[0].die} ${conText}${dieDots(dice[0])}`
-    : `Hit dice ${dice.map((h) => `${h.count}d${h.die}${dieDots(h)}`).join(' ')} ${conText} each`;
+  let hitDice;
+  if (dice.length === 1) {
+    const [h] = dice;
+    hitDice = `Hit ${h.count === 1 ? 'die' : 'dice'} ${h.count}d${h.die} ${conText}${dieDots(h)}`;
+  } else {
+    hitDice = `Hit dice ${dice.map((h) => `${h.count}d${h.die}${dieDots(h)}`).join(' ')} ${conText} each`;
+  }
 
   return `
 <div class="play">
@@ -52,19 +56,19 @@ export function renderPlay(c, state, ui = {}) {
     </div>
     <div class="panel stats">
       ${stat('AC', c.ac)}${stat('Init', fmt(abilityMod(c.abilities.dex)))}${stat('Speed', c.speed)}
-      ${stat('Prof', fmt(profBonus(c.level)))}${stat('Size', c.size)}${stat('Passive', passive(c, 'perception'))}
+      ${stat('Prof', fmt(profBonus(c.level)))}${stat('Darkvision', `${c.darkvision} ft`)}${stat('Passive', passive(c, 'perception'))}
     </div>
-    <div class="row tight"><span class="label">Darkvision ${c.darkvision} ft</span><span class="label">${hitDice}</span></div>
+    <div class="row tight"><span class="label">Size ${c.size}</span><span class="label">${hitDice}</span></div>
   </section>
 
   <section class="col">
     <div class="panel">
       <div class="label">Shot · ${esc(shot.name)}</div>
       <div class="row"><span>To hit</span><span class="hit">${hitText}</span></div>
-      <div class="row"><span>Damage</span><b>${damageText(c, shot, {})}</b></div>
+      <div class="row"><span>Damage</span><b>${damageText(c, shot, {})}${c.coldStrike && t.coldStrike ? ` + ${profBonus(c.level)} cold` : ''}</b></div>
       ${shot.sneak ? `<div class="row"><span>Sneak Attack</span><b>+${sneakDice(c)}</b></div>` : ''}
       <div class="label">${rangeText(shot, { assistedAim: t.assistedAim })} · ${esc(shot.note)}</div>
-      <div class="chips">${chip('toggle', 'advantage', 'Advantage', t.advantage)}${chip('toggle', 'assistedAim', 'Assisted Aim', t.assistedAim)}</div>
+      <div class="chips">${chip('toggle', 'advantage', 'Advantage', t.advantage)}${chip('toggle', 'assistedAim', 'Assisted Aim', t.assistedAim)}${c.coldStrike ? chip('toggle', 'coldStrike', 'Cold strike', t.coldStrike) : ''}</div>
     </div>
     <div class="panel">
       <div class="label">Other attacks</div>

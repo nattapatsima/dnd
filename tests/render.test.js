@@ -7,14 +7,14 @@ import { renderChecks, renderFeatures, renderGear, renderNotes } from '../js/ren
 test('checks tab', () => {
   const h = renderChecks(c);
   for (const t of ['Strength 8 · −1', 'Acrobatics ●●', "Thieves' tools · pick a lock or disarm a trap, DC 15",
-    'Perception 17 · Insight 15 · Investigation 12', 'plus 2 of your choice (not picked yet)', "Woodcarver's tools · carve a pattern in wood, DC 10"]) ok(h.includes(t), t);
+    'Perception 17 · Insight 15 · Investigation 12', 'Common, Elvish, Sylvan, Undercommon', "Woodcarver's tools · carve a pattern in wood, DC 10"]) ok(h.includes(t), t);
 });
 
 test('features tab', () => {
   const h = renderFeatures(c);
   for (const t of ['Wisdom · save DC 13 · spell attack +5 · no spell slots', 'level 1 · action · 30 ft · 1 minute',
-    'double range', 'Hunting Rifle (Slow), shortbow (Vex) · change them after a long rest',
-    'Next level: Rogue 2 adds Cunning Action', 'Blessing of the Raven Queen']) ok(h.includes(t), t);
+    'range doubles (DM: no +1 to hit)', 'Control Flames', 'Guidance', 'Shadow Bind', 'Steady Aim', 'Hunting Rifle (Slow), shortbow (Vex) · change them after a long rest',
+    'Next level: Rogue 4 adds a feat', 'Blessing of the Raven Queen']) ok(h.includes(t), t);
 });
 
 test('gear tab', () => {
@@ -25,16 +25,16 @@ test('gear tab', () => {
 
 test('notes tab', () => {
   const h = renderNotes(c, defaultState(c), {});
-  ok(h.includes(`v${c.buildVersion} · level 1`), 'version label');
+  ok(h.includes(`v${c.buildVersion} · level 3`), 'version label');
   ok(h.includes('data-action="export"'), 'export button');
 });
 
-test('play tab level 1 content', () => {
+test('play tab level 3 content', () => {
   const h = renderPlay(c, defaultState(c), {});
   for (const t of [
-    'd20 +5', '2d10 + 3', '+1d6', '80 / 240 ft · Slow: a hit cuts its speed by 10 ft',
-    'Shot · Hunting Rifle', 'Shortbow, Vex', '+5 · 1d6+3', '+5 · 1d4+3', 'Darkvision 60 ft', 'Hit die 1d8 + 1',
-    'Raven Queen teleport', 'Bonus Action: teleport 30 ft to a space you can see', 'Reload · <span id="bullets">15</span>',
+    'd20 +5', '2d10 + 3', '+2d6', 'Cold strike', '80 / 240 ft · Slow: a hit cuts its speed by 10 ft',
+    'Shot · Hunting Rifle', 'Shortbow, Vex', '+5 · 1d6+3', '+5 · 1d4+3', '<b>120 ft</b>', 'Size M', 'Hit dice 3d8 + 1',
+    'Raven Queen teleport', 'Bonus Action: teleport 30 ft + resistance to all damage until your next turn', 'Reload · <span id="bullets">15</span>',
     'Perception +7 ●●', 'save +5 ●',
   ]) ok(h.includes(t), t);
   ok(!h.includes('Sneak Attack needs'), 'no Sneak Attack rule line');
@@ -56,8 +56,10 @@ test('toggles change to-hit', () => {
   const s = defaultState(c);
   ok(renderPlay(c, { ...s, toggles: { ...s.toggles, advantage: true } }, {}).includes('2d20 high +5'), 'advantage');
   const h = renderPlay(c, { ...s, toggles: { ...s.toggles, assistedAim: true } }, {});
-  ok(h.includes('d20 +6'), 'shot +6');
-  ok(h.includes('+6 · 1d6+3'), 'shortbow +6');
+  ok(h.includes('d20 +5'), 'shot stays +5 with Assisted Aim');
+  ok(h.includes('+5 · 1d6+3'), 'shortbow stays +5');
+  ok(!h.includes('+ 2 cold'), 'no cold damage until Cold strike is on');
+  ok(renderPlay(c, { ...s, toggles: { ...s.toggles, coldStrike: true } }, {}).includes('2d10 + 3 + 2 cold'), 'cold strike adds +2 cold');
 });
 
 test('Assisted Aim doubles the shot range', () => {
