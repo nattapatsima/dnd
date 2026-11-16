@@ -5,7 +5,7 @@ import {
 } from './storage.js';
 import { renderPlay } from './render-play.js';
 import {
-  renderChecks, renderFeatures, renderGear, renderHeader, renderNotes,
+  renderChecks, renderFeatures, renderGear, renderHeader, renderNotes, renderSpells,
 } from './render-tabs.js';
 
 // Hand a backup file to the iPad share sheet when it can take files, otherwise download it.
@@ -47,6 +47,7 @@ export function mount(root, { character: c, storage, now = () => new Date() }) {
     switch (tab) {
       case 'checks': return renderChecks(c, state);
       case 'features': return renderFeatures(c);
+      case 'spells': return renderSpells(c, state);
       case 'gear': return renderGear(c, state);
       case 'notes': return renderNotes(c, state, ui);
       default: return renderPlay(c, state, ui);

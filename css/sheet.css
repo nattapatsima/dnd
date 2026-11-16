@@ -170,3 +170,11 @@ textarea { display: block; resize: vertical; margin-top: 4px; line-height: 1.4; 
 .stat-btn { display: block; width: 100%; min-width: 0; text-align: left; padding: 0 6px; line-height: 1.2; }
 .stat-btn.on { background: var(--accent-bg); border-color: var(--accent); }
 .stat-btn.on, .stat-btn.on .label { color: var(--accent-text); }
+
+/* Spells tab: level headers with slot dots, then the level's spells in two columns. */
+.spell-level { margin-top: var(--gap); padding: 0 2px; }
+.spell-level b { font-size: 18px; }
+.spell-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gap); }
+.spell-grid > .panel { margin-top: 0; }
+.spell > div + div { margin-top: 2px; }
+@media (max-width: 900px) { .spell-grid { grid-template-columns: minmax(0, 1fr); } }

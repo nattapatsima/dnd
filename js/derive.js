@@ -93,6 +93,9 @@ export function cantripDice(level) {
 export function resourceMax(c, resource) {
   if (resource.max === 'level') return c.level;
   if (resource.max === 'prof') return profBonus(c.level);
+  // 'mod:cha': an ability modifier, at least 1 (e.g. Bardic Inspiration uses).
+  const ability = /^mod:(str|dex|con|int|wis|cha)$/.exec(resource.max ?? '');
+  if (ability) return Math.max(1, abilityMod(c.abilities[ability[1]]));
   return resource.max;
 }
 
@@ -144,3 +147,22 @@ export function reachText(c, attack, t) {
 
 // An attack row's name, with its current reach when it has one.
 export const attackLabel = (c, attack, t) => (attack.reach ? `${attack.name}, ${reachNow(c, attack, t)} ft` : attack.name);
+
+// Builds with spell slots are full casters: they get a Spells tab and a Spell slots panel.
+export const hasSpellSlots = (c) => c.resources.some((r) => r.slot);
+
+// Fill a build's number placeholders so typed text can never drift from the build. The one legend:
+// {dc} spell save DC · {atk} spell attack · {mod} spellcasting modifier · {mod:cha} any ability modifier
+// {dc:cha} 8 + that ability's modifier + proficiency · {pb} proficiency bonus · {halfpb} half of it, rounded down
+// {13+pb} a number plus proficiency.
+export function fillNumbers(c, text) {
+  return String(text)
+    .replace(/\{dc\}/g, () => String(spellDC(c)))
+    .replace(/\{atk\}/g, () => fmt(spellAttack(c)))
+    .replace(/\{mod\}/g, () => String(mod(c, c.spellcasting.ability)))
+    .replace(/\{mod:(str|dex|con|int|wis|cha)\}/g, (_, ability) => String(mod(c, ability)))
+    .replace(/\{dc:(str|dex|con|int|wis|cha)\}/g, (_, ability) => String(8 + mod(c, ability) + prof(c)))
+    .replace(/\{halfpb\}/g, () => String(Math.floor(prof(c) / 2)))
+    .replace(/\{pb\}/g, () => String(prof(c)))
+    .replace(/\{(\d+)\+pb\}/g, (_, n) => String(Number(n) + prof(c)));
+}

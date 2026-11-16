@@ -4,7 +4,7 @@ import { mem } from './helpers.js';
 import { CHARACTER as sniper } from '../js/character.js';
 import { DYME } from '../js/characters/dyme.js';
 import { BARD } from '../js/characters/bard.js';
-import { skillBonus } from '../js/derive.js';
+import { fillNumbers, skillBonus } from '../js/derive.js';
 import { defaultState, reduce } from '../js/state.js';
 import {
   exportBackup, loadState, migrateState, parseBackup, saveState, storageKeys,
@@ -85,4 +85,10 @@ test("the bard's backup is refused by the sniper and Dyme", () => {
     try { parseBackup(text, c); } catch (e) { got = e.message; }
     eq(got, msg);
   }
+});
+
+test('fillNumbers fills every placeholder from the build', () => {
+  // The bard: Cha 18 (+4), Con 14 (+2), proficiency +2, Charisma caster.
+  eq(fillNumbers(BARD, '{dc} {atk} {mod} {mod:con} {dc:cha} {pb} {halfpb} {13+pb}'), '14 +6 4 2 14 2 1 15');
+  eq(fillNumbers(sniper, 'plain text, no placeholders'), 'plain text, no placeholders');
 });

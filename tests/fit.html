@@ -80,17 +80,20 @@ for (const [who, page] of PAGES) for (const [width, height] of SIZES) {
     const smallTargets = [...doc.querySelectorAll('button, [data-action]')]
       .filter((el) => { const box = el.getBoundingClientRect(); return box.width > 0 && box.height < 44; }).length;
     const fits = Math.max(calm, busy) + SLACK <= height && wide <= width;
+    // The tab bar stays one row of 44 px buttons (the bard has six tabs).
+    const tabsOneRow = doc.querySelector('.tabs').getBoundingClientRect().height <= 50;
     // Notes tab: the backup buttons stay on one line.
     doc.querySelector('[data-action="tab"][data-arg="notes"]').click();
     const importBtn = doc.querySelector('[data-action="import"]');
     const importOneLine = importBtn && importBtn.getBoundingClientRect().height <= 46;
-    window.__fit.push({ page: who, size: `${width} × ${height}`, fits, calm, busy, wide, smallTargets, amountFont, bodyFont, labelFont, abilityFont, abilityLabelFont, traitsFont, importOneLine });
+    window.__fit.push({ page: who, size: `${width} × ${height}`, fits, calm, busy, wide, smallTargets, amountFont, bodyFont, labelFont, abilityFont, abilityLabelFont, traitsFont, importOneLine, tabsOneRow });
     frame.remove();
     ok(fits, `content ends at ${calm}, busy ${busy} (needs ≤ ${height - SLACK}), width ${wide}`);
     ok(smallTargets === 0, `${smallTargets} touch targets under 44 px`);
     ok(bodyFont >= 16, `body text ${bodyFont} px (needs at least 16 px to read at the table)`);
     ok(labelFont >= 13, `labels ${labelFont} px (needs at least 13 px)`);
     ok(importOneLine, 'Import backup button fits on one line');
+    ok(tabsOneRow, 'tab bar fits on one row');
     ok(abilityFont >= 26 && abilityLabelFont >= 16, `ability box ${abilityFont} px numbers, ${abilityLabelFont} px labels`);
     ok(traitsFont === labelFont, `traits line ${traitsFont} px stays at label size ${labelFont} px`);
     ok(amountFont >= 16, `Amount field font ${amountFont} px (under 16 px makes the iPad zoom on tap)`);

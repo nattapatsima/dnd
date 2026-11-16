@@ -17,3 +17,9 @@ A table decision that overrides or settles the rules for one character, such as 
 
 **Effect chip**
 A Play-tab toggle for a per-turn feature (Steady Aim, Lengthened Strike, Burst of Speed). While it is on, the numbers it affects (to-hit, reach, speed) show the changed values. It never spends a daily use, and a Long rest turns it off.
+
+**Spells tab**
+A full caster's spellbook (a Build with spell slots): spellcasting line on top, then spells grouped by level, each level header showing its slot dots. Builds without slots keep spells on a combined Features and spells tab.
+
+**Worked number**
+A number in a Build's text that the sheet calculates from the Build (spell save DC, spell attack, an ability modifier, proficiency) instead of storing it typed, so it can't drift after a level-up.

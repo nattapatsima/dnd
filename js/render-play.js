@@ -1,6 +1,6 @@
 // The Play tab: everything needed for a turn on one landscape screen.
 import {
-  SKILLS, abilityMod, attackLabel, climbNow, coldStrikeBonus, hasAdvantage, reachText, speedNow, coverBonus, damageText, fmt, otherAttacks, passive, profBonus,
+  SKILLS, abilityMod, attackLabel, fillNumbers, climbNow, coldStrikeBonus, hasAdvantage, reachText, speedNow, coverBonus, damageText, fmt, otherAttacks, passive, profBonus,
   rangeText, saveBonus, skillBonus, skillMark, sneakDice, toHit,
 } from './derive.js';
 import { TRANCE_TOOLS, TRANCE_WEAPONS } from './trance-options.js';
@@ -15,7 +15,7 @@ export function chip(action, arg, label, on) {
 }
 
 // One tappable dot per flag. `filled(flag)` decides whether the dot is drawn filled.
-function dots(action, argPrefix, flags, filled, label) {
+export function dots(action, argPrefix, flags, filled, label) {
   return flags.map((flag, i) => (
     `<button class="dot${filled(flag) ? ' on' : ''}" data-action="${action}" data-arg="${esc(argPrefix)}${i}" aria-label="${esc(label)} ${i + 1}"></button>`
   )).join('');
@@ -110,7 +110,7 @@ export function renderPlay(c, state, ui = {}) {
     <div class="panel">
       <div class="label">${c.keySpells ? 'Key spells' : 'Other attacks'}</div>
       ${others.map((a) => `<div class="row"><span>${esc(attackLabel(c, a, t))}</span><b>${fmt(toHit(c, a, { assistedAim: t.assistedAim }))} · ${damageText(c, a, { compact: true })}</b></div>`).join('')}
-      ${(c.keySpells ?? []).map((s) => `<div class="row"><span>${esc(s.name)}</span><b>${esc(s.summary)}</b></div>`).join('')}
+      ${(c.keySpells ?? []).map((s) => `<div class="row"><span>${esc(s.name)}</span><b>${esc(fillNumbers(c, s.summary))}</b></div>`).join('')}
     </div>
     ${c.rifle ? `<div class="panel row ammo"><span>Rifle</span><span class="dots">${dots('shot', '', state.shotsFired, (f) => !f, 'Rifle shot')}</span><button data-action="reload" aria-label="Reload from ${state.bullets} spare bullets">Reload · <span id="bullets">${state.bullets}</span></button></div>` : ''}
     ${slots.length ? `<div class="panel" data-box="slots"><div class="label">Spell slots</div>${slots.map(useRow).join('')}</div>` : ''}
@@ -121,7 +121,7 @@ export function renderPlay(c, state, ui = {}) {
       <div class="label">Daily uses</div>
       ${c.resources.filter((r) => !r.slot).map(useRow).join('')}
       <div class="row"><span>Inspiration</span>${chip('toggle', 'inspiration', 'Have it', t.inspiration)}</div>
-      ${c.playNote ? `<div class="label">${esc(c.playNote)}</div>` : ''}
+      ${c.playNote ? `<div class="label">${esc(fillNumbers(c, c.playNote))}</div>` : ''}
     </div>
 ${c.shadowBind ? shadowBindPanel(c, state) : ''}
 ${c.trance ? trancePanel(state) : ''}
