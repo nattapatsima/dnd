@@ -4,7 +4,8 @@ const APP_FILES = [
   './js/main.js', './js/boot.js', './js/character.js', './js/derive.js', './js/state.js', './js/storage.js',
   './js/render-play.js', './js/render-tabs.js', './css/sheet.css', './manifest.webmanifest', './icons/icon-180.png',
   './js/start.js', './js/trance-options.js', './dyme/', './dyme/index.html', './dyme/boot.js', './dyme/manifest.webmanifest',
-  './js/characters/dyme.js',
+  './js/characters/dyme.js', './bard/', './bard/index.html', './bard/boot.js', './bard/manifest.webmanifest',
+  './js/characters/bard.js',
 ];
 
 test('every precached file loads', async () => {
@@ -15,7 +16,7 @@ test('every precached file loads', async () => {
 });
 
 test('no external requests', async () => {
-  for (const f of ['../index.html', '../dyme/index.html', '../dyme/boot.js', '../js/characters/dyme.js', '../css/sheet.css', '../js/main.js', '../js/render-play.js', '../js/render-tabs.js', '../manifest.webmanifest']) {
+  for (const f of ['../index.html', '../dyme/index.html', '../dyme/boot.js', '../js/characters/dyme.js', '../bard/index.html', '../bard/boot.js', '../js/characters/bard.js', '../css/sheet.css', '../js/main.js', '../js/render-play.js', '../js/render-tabs.js', '../manifest.webmanifest']) {
     ok(!/https?:\/\//.test(await (await fetch(f)).text()), f);
   }
 });
@@ -38,6 +39,11 @@ test('offline page visits fall back to their own page', async () => {
   const shellFor = new Function('self', 'caches', 'fetch', `${src}
 return shellFor;`)(scope, {}, () => {});
   const base = 'https://example.test/dnd/';
-  eq([`${base}dyme/`, `${base}dyme`, `${base}dyme/index.html`, base, `${base}index.html`].map(shellFor),
-    ['./dyme/index.html', './dyme/index.html', './dyme/index.html', './index.html', './index.html']);
+  eq([`${base}dyme/`, `${base}dyme`, `${base}dyme/index.html`, `${base}bard/`, `${base}bard`, base, `${base}index.html`].map(shellFor),
+    ['./dyme/index.html', './dyme/index.html', './dyme/index.html', './bard/index.html', './bard/index.html', './index.html', './index.html']);
+});
+
+test('the bard has its own Home Screen app', async () => {
+  const m = await (await fetch('../bard/manifest.webmanifest')).json();
+  eq([m.name, m.short_name, m.display, m.start_url, m.scope], ['Autognome Bard', 'Bard', 'standalone', './', './']);
 });

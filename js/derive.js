@@ -36,7 +36,9 @@ export function saveBonus(c, ability) {
 
 export function skillBonus(c, id) {
   const times = c.expertise.includes(id) ? 2 : c.skillProf.includes(id) ? 1 : 0;
-  return mod(c, SKILLS[id].ability) + times * prof(c);
+  // Jack of All Trades (Bard): half proficiency, rounded down, on skills without proficiency.
+  const jack = times === 0 && c.jackOfAllTrades ? Math.floor(prof(c) / 2) : 0;
+  return mod(c, SKILLS[id].ability) + times * prof(c) + jack;
 }
 
 export function skillMark(c, id) {
@@ -110,7 +112,7 @@ export function damageText(c, attack, { compact = false } = {}) {
   const m = mod(c, attack.ability);
   const sign = m < 0 ? '−' : '+';
   const dice = [attack.die];
-  // The Light extra attack adds no (positive) ability modifier to its damage.
+  // No (positive) ability modifier on the damage: the Light extra attack, and cantrips like Starry Wisp.
   if (attack.noModDamage && m >= 0) return compact ? dice.join('+') : dice.join(' + ');
   if (attack.cantripDie) dice.push(`${cantripDice(c.level)}${attack.cantripDie}`);
   return compact ? `${dice.join('+')}${sign}${Math.abs(m)}` : `${dice.join(' + ')} ${sign} ${Math.abs(m)}`;

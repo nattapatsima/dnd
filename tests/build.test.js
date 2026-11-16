@@ -2,6 +2,9 @@
 import { test, eq, ok } from './runner.js';
 import { mem } from './helpers.js';
 import { CHARACTER as sniper } from '../js/character.js';
+import { DYME } from '../js/characters/dyme.js';
+import { BARD } from '../js/characters/bard.js';
+import { skillBonus } from '../js/derive.js';
 import { defaultState, reduce } from '../js/state.js';
 import {
   exportBackup, loadState, migrateState, parseBackup, saveState, storageKeys,
@@ -68,4 +71,18 @@ test('the sniper has no Dyme effect chips', () => {
   for (const key of ['steadyAim', 'lengthened', 'burst']) ok(!(key in s.toggles), `no ${key} toggle`);
   const play = renderPlay(sniper, s, {});
   for (const key of ['steadyAim', 'lengthened', 'burst']) ok(!play.includes(`data-arg="${key}"`), `no ${key} chip`);
+});
+
+test('Jack of All Trades and the Spell slots panel belong to the bard only', () => {
+  eq([skillBonus(sniper, 'athletics'), skillBonus(DYME, 'athletics'), skillBonus(BARD, 'athletics')], [-1, -1, 0]);
+  for (const c of [sniper, DYME]) ok(!renderPlay(c, defaultState(c), {}).includes('data-box="slots"'), `no slots panel for ${c.name}`);
+});
+
+test("the bard's backup is refused by the sniper and Dyme", () => {
+  const text = exportBackup(defaultState(BARD), new Date(), BARD).text;
+  for (const [c, msg] of [[sniper, 'Not a Quickstep backup file'], [DYME, 'Not a Dyme backup file']]) {
+    let got = '';
+    try { parseBackup(text, c); } catch (e) { got = e.message; }
+    eq(got, msg);
+  }
 });

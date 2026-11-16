@@ -1,6 +1,6 @@
-// Offline cache for both character pages. Every publish bumps CACHE together with the
+// Offline cache for every character page. Every publish bumps CACHE together with the
 // buildVersion of every character whose build file changed.
-const CACHE = 'quickstep-v7';
+const CACHE = 'quickstep-v8';
 const ASSETS = [
   './',
   './index.html',
@@ -21,6 +21,11 @@ const ASSETS = [
   './dyme/boot.js',
   './dyme/manifest.webmanifest',
   './js/characters/dyme.js',
+  './bard/',
+  './bard/index.html',
+  './bard/boot.js',
+  './bard/manifest.webmanifest',
+  './js/characters/bard.js',
   './icons/icon-180.png',
   './icons/icon-192.png',
   './icons/icon-512.png'
@@ -49,7 +54,7 @@ self.addEventListener('activate', (event) => {
 
 // Each character page and its offline shell. A page visit that misses the cache gets its own
 // page's shell, never another character's.
-const PAGES = ['./dyme/'];
+const PAGES = ['./dyme/', './bard/'];
 
 function shellFor(url) {
   const path = new URL(url).pathname;

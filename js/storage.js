@@ -17,7 +17,7 @@ export function storageKeys(c) {
 
 const UNREADABLE = 'Saved data was unreadable, so the sheet started fresh. The old copy was kept.';
 export const NOT_SAVING = "This device isn't saving. Export a backup before closing.";
-const notBackup = (c) => `Not a ${c.label} backup file`;
+const notBackup = (c) => `Not ${/^[AEIOU]/i.test(c.label) ? 'an' : 'a'} ${c.label} backup file`;
 
 const isObject = (v) => Boolean(v) && typeof v === 'object' && !Array.isArray(v);
 const isCount = (v) => Number.isInteger(v) && v >= 0;

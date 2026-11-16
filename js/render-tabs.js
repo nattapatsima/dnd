@@ -30,10 +30,16 @@ export function renderChecks(c, state) {
 <div class="panel"><div class="label">Proficiencies and languages</div><div>${esc(c.armorWeapons)}</div><div>${esc(c.languages)}</div></div>`;
 }
 
+// "slots: Level 1 ×4, Level 2 ×3", or "no spell slots" for a build without any.
+function slotsText(c) {
+  const slots = c.resources.filter((r) => r.slot);
+  return slots.length ? `slots: ${slots.map((r) => `${r.name} ×${r.max}`).join(', ')}` : 'no spell slots';
+}
+
 export function renderFeatures(c) {
   const ability = ABILITY_NAMES[c.spellcasting.ability];
   return `<div class="panel"><div class="label">Spellcasting · ${esc(c.spellcasting.label)}</div>
-<div>${c.spellcasting.summary ? esc(c.spellcasting.summary) : `${ability} · save DC ${spellDC(c)} · spell attack ${fmt(spellAttack(c))} · no spell slots`}</div></div>
+<div>${c.spellcasting.summary ? esc(c.spellcasting.summary) : `${ability} · save DC ${spellDC(c)} · spell attack ${fmt(spellAttack(c))} · ${slotsText(c)}`}</div></div>
 <div class="panel">${c.spells.map((spell) => `<div class="row"><b>${esc(spell.name)}</b><span class="muted">${esc(spell.meta)}</span></div><div class="label">${esc(spell.text)}</div>`).join('')}</div>
 <div class="panel"><div class="label">Features</div>${c.features.map((f) => `<div class="feature"><b>${esc(f.name)}</b> · ${esc(f.text)}</div>`).join('')}</div>
 ${c.bonusActions ? `<div class="panel"><div class="label">Bonus Actions · one per turn</div>${c.bonusActions.map((b) => `<div class="feature"><b>${esc(b.name)}</b> · ${esc(b.text)}</div>`).join('')}</div>` : ''}

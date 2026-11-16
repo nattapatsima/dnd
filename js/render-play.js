@@ -59,6 +59,9 @@ export function renderPlay(c, state, ui = {}) {
   const others = otherAttacks(c, state);
   const cold = coldStrikeBonus(c, state);
   const cover = coverBonus(c, state);
+  // Spell slots sit in the middle column, the other daily uses in the right one.
+  const slots = c.resources.filter((r) => r.slot);
+  const useRow = (r) => `<div class="row"><span>${esc(r.name)}</span><span class="dots">${dots('use', `${r.id}:`, state.uses[r.id] ?? [], (f) => !f, r.name)}</span></div>${r.note ? `<div class="label">${esc(r.note)}</div>` : ''}`;
   const hasAssistedAim = c.resources.some((r) => r.id === 'assistedAim');
   const hitText = `${hasAdvantage(t) ? '2d20 high' : 'd20'} ${fmt(toHit(c, shot, { assistedAim: t.assistedAim }))}`;
   const con = abilityMod(c.abilities.con);
@@ -97,24 +100,26 @@ export function renderPlay(c, state, ui = {}) {
 
   <section class="col">
     <div class="panel">
-      <div class="label">${shot.kind === 'melee' ? 'Attack' : 'Shot'} · ${esc(shot.name)}</div>
+      <div class="label">${{ melee: 'Attack', spell: 'Spell' }[shot.kind] ?? 'Shot'} · ${esc(shot.name)}</div>
       <div class="row"><span>To hit</span><span class="hit">${hitText}</span></div>
       <div class="row"><span>Damage</span><b>${damageText(c, shot, {})}${shot.damageType ? ` ${esc(shot.damageType)}` : ''}${cold ? ` + ${cold} cold` : ''}</b></div>
       ${shot.sneak ? `<div class="row"><span>Sneak Attack</span><b>+${sneakDice(c)}</b></div>` : ''}
-      <div class="label">${shot.reach ? esc(reachText(c, shot, t)) : rangeText(shot, { assistedAim: t.assistedAim })} · ${esc(shot.note)}</div>
+      <div class="label">${shot.rangeLabel ? esc(shot.rangeLabel) : shot.reach ? esc(reachText(c, shot, t)) : rangeText(shot, { assistedAim: t.assistedAim })} · ${esc(shot.note)}</div>
       <div class="chips">${chip('toggle', 'advantage', 'Advantage', t.advantage)}${hasAssistedAim ? chip('toggle', 'assistedAim', 'Assisted Aim', t.assistedAim) : ''}${c.effects?.steadyAim ? chip('toggle', 'steadyAim', 'Steady Aim', t.steadyAim) : ''}${c.effects?.lengthened ? chip('toggle', 'lengthened', 'Lengthened Strike', t.lengthened) : ''}</div>
     </div>
     <div class="panel">
-      <div class="label">Other attacks</div>
+      <div class="label">${c.keySpells ? 'Key spells' : 'Other attacks'}</div>
       ${others.map((a) => `<div class="row"><span>${esc(attackLabel(c, a, t))}</span><b>${fmt(toHit(c, a, { assistedAim: t.assistedAim }))} · ${damageText(c, a, { compact: true })}</b></div>`).join('')}
+      ${(c.keySpells ?? []).map((s) => `<div class="row"><span>${esc(s.name)}</span><b>${esc(s.summary)}</b></div>`).join('')}
     </div>
     ${c.rifle ? `<div class="panel row ammo"><span>Rifle</span><span class="dots">${dots('shot', '', state.shotsFired, (f) => !f, 'Rifle shot')}</span><button data-action="reload" aria-label="Reload from ${state.bullets} spare bullets">Reload · <span id="bullets">${state.bullets}</span></button></div>` : ''}
+    ${slots.length ? `<div class="panel" data-box="slots"><div class="label">Spell slots</div>${slots.map(useRow).join('')}</div>` : ''}
   </section>
 
   <section class="col">
     <div class="panel">
       <div class="label">Daily uses</div>
-      ${c.resources.map((r) => `<div class="row"><span>${esc(r.name)}</span><span class="dots">${dots('use', `${r.id}:`, state.uses[r.id] ?? [], (f) => !f, r.name)}</span></div>${r.note ? `<div class="label">${esc(r.note)}</div>` : ''}`).join('')}
+      ${c.resources.filter((r) => !r.slot).map(useRow).join('')}
       <div class="row"><span>Inspiration</span>${chip('toggle', 'inspiration', 'Have it', t.inspiration)}</div>
       ${c.playNote ? `<div class="label">${esc(c.playNote)}</div>` : ''}
     </div>
