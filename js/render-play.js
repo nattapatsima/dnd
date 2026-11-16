@@ -55,6 +55,7 @@ export function renderPlay(c, state, ui = {}) {
   const others = otherAttacks(c, state);
   const cold = coldStrikeBonus(c, state);
   const cover = coverBonus(c, state);
+  const hasAssistedAim = c.resources.some((r) => r.id === 'assistedAim');
   const hitText = `${t.advantage ? '2d20 high' : 'd20'} ${fmt(toHit(c, shot, { assistedAim: t.assistedAim }))}`;
   const con = abilityMod(c.abilities.con);
   const conText = `${con < 0 ? '−' : '+'} ${Math.abs(con)}`;
@@ -85,25 +86,25 @@ export function renderPlay(c, state, ui = {}) {
     </div>
     <div class="panel stats">
       ${stat('AC', c.ac + cover)}${stat('Init', fmt(abilityMod(c.abilities.dex)))}${stat('Speed', c.speed)}
-      ${stat('Prof', fmt(profBonus(c.level)))}${stat('Darkvision', `${c.darkvision} ft`)}${stat('Passive', passive(c, 'perception'))}
+      ${stat('Prof', fmt(profBonus(c.level)))}${!c.darkvision && c.climb ? stat('Climb', `${c.climb} ft`) : stat('Darkvision', c.darkvision ? `${c.darkvision} ft` : 'none')}${stat('Passive', passive(c, 'perception'))}
     </div>
     <div class="row tight"><span class="label">Size ${c.size}</span><span class="label">${hitDice}</span></div>
   </section>
 
   <section class="col">
     <div class="panel">
-      <div class="label">Shot · ${esc(shot.name)}</div>
+      <div class="label">${shot.kind === 'melee' ? 'Attack' : 'Shot'} · ${esc(shot.name)}</div>
       <div class="row"><span>To hit</span><span class="hit">${hitText}</span></div>
-      <div class="row"><span>Damage</span><b>${damageText(c, shot, {})}${cold ? ` + ${cold} cold` : ''}</b></div>
+      <div class="row"><span>Damage</span><b>${damageText(c, shot, {})}${shot.damageType ? ` ${esc(shot.damageType)}` : ''}${cold ? ` + ${cold} cold` : ''}</b></div>
       ${shot.sneak ? `<div class="row"><span>Sneak Attack</span><b>+${sneakDice(c)}</b></div>` : ''}
-      <div class="label">${rangeText(shot, { assistedAim: t.assistedAim })} · ${esc(shot.note)}</div>
-      <div class="chips">${chip('toggle', 'advantage', 'Advantage', t.advantage)}${chip('toggle', 'assistedAim', 'Assisted Aim', t.assistedAim)}</div>
+      <div class="label">${shot.reachText ? esc(shot.reachText) : rangeText(shot, { assistedAim: t.assistedAim })} · ${esc(shot.note)}</div>
+      <div class="chips">${chip('toggle', 'advantage', 'Advantage', t.advantage)}${hasAssistedAim ? chip('toggle', 'assistedAim', 'Assisted Aim', t.assistedAim) : ''}</div>
     </div>
     <div class="panel">
       <div class="label">Other attacks</div>
       ${others.map((a) => `<div class="row"><span>${esc(a.name)}</span><b>${fmt(toHit(c, a, { assistedAim: t.assistedAim }))} · ${damageText(c, a, { compact: true })}</b></div>`).join('')}
     </div>
-    <div class="panel row ammo"><span>Rifle</span><span class="dots">${dots('shot', '', state.shotsFired, (f) => !f, 'Rifle shot')}</span><button data-action="reload" aria-label="Reload from ${state.bullets} spare bullets">Reload · <span id="bullets">${state.bullets}</span></button></div>
+    ${c.rifle ? `<div class="panel row ammo"><span>Rifle</span><span class="dots">${dots('shot', '', state.shotsFired, (f) => !f, 'Rifle shot')}</span><button data-action="reload" aria-label="Reload from ${state.bullets} spare bullets">Reload · <span id="bullets">${state.bullets}</span></button></div>` : ''}
   </section>
 
   <section class="col">
@@ -111,9 +112,10 @@ export function renderPlay(c, state, ui = {}) {
       <div class="label">Daily uses</div>
       ${c.resources.map((r) => `<div class="row"><span>${esc(r.name)}</span><span class="dots">${dots('use', `${r.id}:`, state.uses[r.id] ?? [], (f) => !f, r.name)}</span></div>${r.note ? `<div class="label">${esc(r.note)}</div>` : ''}`).join('')}
       <div class="row"><span>Inspiration</span>${chip('toggle', 'inspiration', 'Have it', t.inspiration)}</div>
+      ${c.playNote ? `<div class="label">${esc(c.playNote)}</div>` : ''}
     </div>
 ${c.shadowBind ? shadowBindPanel(c, state) : ''}
-${trancePanel(state)}
+${c.trance ? trancePanel(state) : ''}
     <div class="btnrow rest"><button data-action="short-rest">Short rest</button><button data-action="long-rest">Long rest</button></div>
     <div id="message" class="label msg" role="status"><span>${esc(ui.message ?? '')}</span>${ui.canUndo ? '<button class="link" data-action="undo">Undo</button>' : ''}</div>
   </section>

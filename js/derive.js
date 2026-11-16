@@ -110,6 +110,8 @@ export function damageText(c, attack, { compact = false } = {}) {
   const m = mod(c, attack.ability);
   const sign = m < 0 ? '−' : '+';
   const dice = [attack.die];
+  // The Light extra attack adds no (positive) ability modifier to its damage.
+  if (attack.noModDamage && m >= 0) return compact ? dice.join('+') : dice.join(' + ');
   if (attack.cantripDie) dice.push(`${cantripDice(c.level)}${attack.cantripDie}`);
   return compact ? `${dice.join('+')}${sign}${Math.abs(m)}` : `${dice.join(' + ')} ${sign} ${Math.abs(m)}`;
 }

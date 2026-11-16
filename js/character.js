@@ -1,7 +1,11 @@
 // Build data for the Phantom Sniper. Claude edits this on level-ups; the app never does.
 // Every number shown on the sheet must match Characters/Phantom Sniper.md.
 export const CHARACTER = {
-  buildVersion: 5,
+  buildVersion: 6,
+  id: 'sniper',
+  // Saves, backups and the storage probe live under this name. Never change it: saved data would be lost.
+  storageId: 'quickstep-sheet',
+  label: 'Quickstep',
   name: 'Phantom Sniper',
   level: 3,
   classLine: 'Rogue 3 (Umbral Binder) · level 3',
@@ -31,6 +35,8 @@ export const CHARACTER = {
   // Umbral Binder Shadow Bind: cold strike (+prof cold, once per turn) or shadow cover (+2 AC and Dex
   // saves after moving 15+ ft in dim light or darkness). Shadow teleport is not allowed (DM).
   shadowBind: true,
+  // Shadar-Kai Trance: second weapon or tool proficiency picked on the Play tab.
+  trance: true,
   spellcasting: { ability: 'wis', label: 'Magic Initiate (Druid)' },
 
   attacks: [

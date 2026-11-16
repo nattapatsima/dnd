@@ -1,8 +1,10 @@
 import { test, eq, ok } from './runner.js';
 import { mem, mountFresh, click, setAmount, text, type } from './helpers.js';
-import { STORAGE_KEY } from '../js/storage.js';
+import { storageKeys } from '../js/storage.js';
 import { CHARACTER as c } from '../js/character.js';
 import { defaultState } from '../js/state.js';
+
+const STORAGE_KEY = storageKeys(c).state;
 
 test('update notice shows once', () => {
   const storage = mem({ [STORAGE_KEY]: JSON.stringify({ ...defaultState(c), lastSeenBuild: 0 }) });

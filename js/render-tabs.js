@@ -33,9 +33,11 @@ export function renderChecks(c, state) {
 export function renderFeatures(c) {
   const ability = ABILITY_NAMES[c.spellcasting.ability];
   return `<div class="panel"><div class="label">Spellcasting · ${esc(c.spellcasting.label)}</div>
-<div>${ability} · save DC ${spellDC(c)} · spell attack ${fmt(spellAttack(c))} · no spell slots</div></div>
+<div>${c.spellcasting.summary ? esc(c.spellcasting.summary) : `${ability} · save DC ${spellDC(c)} · spell attack ${fmt(spellAttack(c))} · no spell slots`}</div></div>
 <div class="panel">${c.spells.map((spell) => `<div class="row"><b>${esc(spell.name)}</b><span class="muted">${esc(spell.meta)}</span></div><div class="label">${esc(spell.text)}</div>`).join('')}</div>
 <div class="panel"><div class="label">Features</div>${c.features.map((f) => `<div class="feature"><b>${esc(f.name)}</b> · ${esc(f.text)}</div>`).join('')}</div>
+${c.bonusActions ? `<div class="panel"><div class="label">Bonus Actions · one per turn</div>${c.bonusActions.map((b) => `<div class="feature"><b>${esc(b.name)}</b> · ${esc(b.text)}</div>`).join('')}</div>` : ''}
+${c.dmRulings ? `<div class="panel"><div class="label">DM rulings</div>${c.dmRulings.map((r) => `<div class="feature">${esc(r)}</div>`).join('')}</div>` : ''}
 <div class="label next">${esc(c.nextLevel)}</div>`;
 }
 
@@ -43,8 +45,8 @@ export function renderGear(c, state) {
   return `<div class="panel"><div class="label">Equipped · one item per line</div><textarea data-gear="equipped" rows="4">${esc(state.gear.equipped.join('\n'))}</textarea></div>
 <div class="panel"><div class="label">Pack · one item per line</div><textarea data-gear="pack" rows="5">${esc(state.gear.pack.join('\n'))}</textarea></div>
 <div class="coins">${COINS.map((coin) => `<label class="panel"><span class="label">${coin.toUpperCase()}</span><input data-coin="${coin}" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" value="${state.coins[coin]}"></label>`).join('')}</div>
-<div class="row gear-foot"><span>Attunement 0 / ${c.attunementSlots}</span><span class="row"><span>Spare bullets</span><span class="stepper"><button data-action="bullets" data-arg="-1" aria-label="Remove a bullet">−</button><b id="bullets">${state.bullets}</b><button data-action="bullets" data-arg="+1" aria-label="Add a bullet">+</button></span></span></div>
-<div class="label">Plus ${c.rifle.shots} in the rifle when loaded · Reload on the Play tab refills it from these</div>`;
+<div class="row gear-foot"><span>Attunement 0 / ${c.attunementSlots}</span>${c.rifle ? `<span class="row"><span>Spare bullets</span><span class="stepper"><button data-action="bullets" data-arg="-1" aria-label="Remove a bullet">−</button><b id="bullets">${state.bullets}</b><button data-action="bullets" data-arg="+1" aria-label="Add a bullet">+</button></span></span>` : ''}</div>
+${c.rifle ? `<div class="label">Plus ${c.rifle.shots} in the rifle when loaded · Reload on the Play tab refills it from these</div>` : ''}`;
 }
 
 export function renderNotes(c, state, ui = {}) {

@@ -12,11 +12,11 @@ export function mem(initial = {}) {
   };
 }
 
-// Mount the app into a detached div, the way boot.js mounts it on the page.
-export function mountFresh({ storage } = {}) {
+// Mount the app into a detached div, the way js/start.js mounts it on the page.
+export function mountFresh({ storage, character = CHARACTER } = {}) {
   const root = document.createElement('div');
   const store = storage ?? mem();
-  const app = mount(root, { character: CHARACTER, storage: store, now: () => new Date('2026-10-30T12:00:00') });
+  const app = mount(root, { character, storage: store, now: () => new Date('2026-10-30T12:00:00') });
   return { root, storage: store, app };
 }
 

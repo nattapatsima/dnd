@@ -3,7 +3,7 @@ import { mem } from './helpers.js';
 import { CHARACTER as c } from '../js/character.js';
 import { defaultState } from '../js/state.js';
 import {
-  STORAGE_KEY, CORRUPT_KEY, loadState, saveState, migrateState, exportBackup, parseBackup,
+  storageKeys, loadState, saveState, migrateState, exportBackup, parseBackup,
 } from '../js/storage.js';
 
 test('empty storage gives defaults', () => {
@@ -15,24 +15,24 @@ test('empty storage gives defaults', () => {
 test('round trip', () => {
   const m = mem();
   const s = { ...defaultState(c), bullets: 31, shotsFired: [true, true, false, false, false] };
-  ok(saveState(m, s));
+  ok(saveState(m, s, c));
   eq(loadState(m, c).state.bullets, 31);
   eq(loadState(m, c).state.shotsFired, [true, true, false, false, false]);
 });
 
 test('corrupt data is kept aside', () => {
-  const m = mem({ [STORAGE_KEY]: '{oops' });
+  const m = mem({ [storageKeys(c).state]: '{oops' });
   const o = loadState(m, c);
   eq(o.state, defaultState(c));
   eq(o.warning, 'Saved data was unreadable, so the sheet started fresh. The old copy was kept.');
-  eq(m.getItem(CORRUPT_KEY), '{oops');
+  eq(m.getItem(storageKeys(c).corrupt), '{oops');
 });
 
 test('storage that throws', () => {
   const bad = { getItem() { throw new Error('x'); }, setItem() { throw new Error('x'); } };
   const o = loadState(bad, c);
   eq(o.warning, "This device isn't saving. Export a backup before closing.");
-  eq(saveState(bad, o.state), false);
+  eq(saveState(bad, o.state, c), false);
 });
 
 const level2 = {
@@ -66,7 +66,7 @@ test('removed resources are dropped', () => eq(
 ));
 
 test('export file', () => {
-  const b = exportBackup(defaultState(c), new Date('2026-10-30T12:00:00'));
+  const b = exportBackup(defaultState(c), new Date('2026-10-30T12:00:00'), c);
   eq(b.filename, 'quickstep-backup-2026-10-30.json');
   eq(JSON.parse(b.text).app, 'quickstep-sheet');
 });

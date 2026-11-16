@@ -36,11 +36,11 @@ export function mount(root, { character: c, storage, now = () => new Date() }) {
   if (state.lastSeenBuild !== c.buildVersion) {
     if (state.lastSeenBuild !== null && !ui.message) ui.message = `Updated to v${c.buildVersion}`;
     state = reduce(state, { type: 'seenBuild', version: c.buildVersion }, c).state;
-    if (!saveState(storage, state) && !ui.message) ui.message = NOT_SAVING;
+    if (!saveState(storage, state, c) && !ui.message) ui.message = NOT_SAVING;
   }
 
   function save() {
-    if (!saveState(storage, state)) ui = { ...ui, message: NOT_SAVING };
+    if (!saveState(storage, state, c)) ui = { ...ui, message: NOT_SAVING };
   }
 
   function body() {
@@ -94,7 +94,7 @@ export function mount(root, { character: c, storage, now = () => new Date() }) {
   }
 
   async function onExport() {
-    const { filename, text } = exportBackup(state, now());
+    const { filename, text } = exportBackup(state, now(), c);
     try {
       await offerFile(filename, text);
       ui = { ...ui, message: 'Backup exported' };

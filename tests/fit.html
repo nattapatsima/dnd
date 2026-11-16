@@ -29,21 +29,24 @@ const SIZES = [
 // Room left for wider iPad fonts (SF Pro) than the test browser's.
 const SLACK = 20;
 
-function load(width, height) {
+// Every character page is checked at every size.
+const PAGES = [['Sniper', '../index.html'], ['Dyme', '../dyme/index.html']];
+
+function load(page, width, height) {
   return new Promise((resolve) => {
     const frame = document.createElement('iframe');
     frame.style.width = `${width}px`;
     frame.style.height = `${height}px`;
     frame.onload = () => setTimeout(() => resolve(frame), 400);
-    frame.src = '../index.html';
+    frame.src = page;
     document.getElementById('frames').appendChild(frame);
   });
 }
 
 window.__fit = [];
-for (const [width, height] of SIZES) {
-  test(`Play tab fits ${width} × ${height}`, async () => {
-    const frame = await load(width, height);
+for (const [who, page] of PAGES) for (const [width, height] of SIZES) {
+  test(`${who} Play tab fits ${width} × ${height}`, async () => {
+    const frame = await load(page, width, height);
     const doc = frame.contentDocument;
     const win = frame.contentWindow;
     // Bottom of the content, including the page's bottom padding.
@@ -79,7 +82,7 @@ for (const [width, height] of SIZES) {
     doc.querySelector('[data-action="tab"][data-arg="notes"]').click();
     const importBtn = doc.querySelector('[data-action="import"]');
     const importOneLine = importBtn && importBtn.getBoundingClientRect().height <= 46;
-    window.__fit.push({ size: `${width} × ${height}`, fits, calm, busy, wide, smallTargets, amountFont, bodyFont, labelFont, abilityFont, abilityLabelFont, traitsFont, importOneLine });
+    window.__fit.push({ page: who, size: `${width} × ${height}`, fits, calm, busy, wide, smallTargets, amountFont, bodyFont, labelFont, abilityFont, abilityLabelFont, traitsFont, importOneLine });
     frame.remove();
     ok(fits, `content ends at ${calm}, busy ${busy} (needs ≤ ${height - SLACK}), width ${wide}`);
     ok(smallTargets === 0, `${smallTargets} touch targets under 44 px`);

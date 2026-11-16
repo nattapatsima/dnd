@@ -1,26 +1,5 @@
-// Starts the sheet on the page.
+// The Phantom Sniper page (/dnd/). Dyme's page has its own entry in dyme/boot.js.
 import { CHARACTER } from './character.js';
-import { mount } from './main.js';
+import { start } from './start.js';
 
-// localStorage when the device allows it. If it's blocked, hand over a store that
-// always fails, so the sheet still works for this session and warns that it isn't saving.
-function deviceStorage() {
-  try {
-    const store = window.localStorage;
-    store.setItem('quickstep-sheet/probe', '1');
-    store.removeItem('quickstep-sheet/probe');
-    return store;
-  } catch {
-    const blocked = () => { throw new Error('storage blocked'); };
-    return { getItem: blocked, setItem: blocked, removeItem: () => {} };
-  }
-}
-
-mount(document.getElementById('app'), { character: CHARACTER, storage: deviceStorage(), now: () => new Date() });
-
-// Cache every file so the sheet opens with no signal at the table.
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
-  });
-}
+start(CHARACTER, { swUrl: './sw.js' });

@@ -1,10 +1,12 @@
-// Offline cache for the sheet. Bump CACHE together with CHARACTER.buildVersion on every publish.
-const CACHE = 'quickstep-v5';
+// Offline cache for both character pages. Every publish bumps CACHE together with the
+// buildVersion of every character whose build file changed.
+const CACHE = 'quickstep-v6';
 const ASSETS = [
   './',
   './index.html',
   './css/sheet.css',
   './js/boot.js',
+  './js/start.js',
   './js/main.js',
   './js/character.js',
   './js/trance-options.js',
@@ -14,6 +16,11 @@ const ASSETS = [
   './js/render-play.js',
   './js/render-tabs.js',
   './manifest.webmanifest',
+  './dyme/',
+  './dyme/index.html',
+  './dyme/boot.js',
+  './dyme/manifest.webmanifest',
+  './js/characters/dyme.js',
   './icons/icon-180.png',
   './icons/icon-192.png',
   './icons/icon-512.png'
@@ -40,9 +47,22 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// Each character page and its offline shell. A page visit that misses the cache gets its own
+// page's shell, never another character's.
+const PAGES = ['./dyme/'];
+
+function shellFor(url) {
+  const path = new URL(url).pathname;
+  const page = PAGES.find((p) => {
+    const base = new URL(p, self.location).pathname;
+    return path === base.replace(/\/$/, '') || path.startsWith(base);
+  });
+  return page ? `${page}index.html` : './index.html';
+}
+
 function fromCache(request) {
   return caches.match(request, { ignoreSearch: true })
-    .then((hit) => hit || (request.mode === 'navigate' ? caches.match('./index.html') : undefined));
+    .then((hit) => hit || (request.mode === 'navigate' ? caches.match(shellFor(request.url)) : undefined));
 }
 
 self.addEventListener('fetch', (event) => {

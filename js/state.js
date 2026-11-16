@@ -13,7 +13,7 @@ const hitDieWord = (c) => (totalHitDice(c) === 1 ? 'die' : 'dice');
 export const hitDiceFlags = (c) => Object.fromEntries(c.hp.hitDice.map((h) => [`d${h.die}`, flags(h.count)]));
 
 export function defaultState(c) {
-  return {
+  const s = {
     stateVersion: STATE_VERSION,
     lastSeenBuild: null,
     hp: { current: c.hp.max, temp: 0, max: c.hp.max },
@@ -21,16 +21,20 @@ export function defaultState(c) {
     hitDiceSpent: hitDiceFlags(c),
     uses: Object.fromEntries(c.resources.map((r) => [r.id, flags(resourceMax(c, r))])),
     toggles: { advantage: false, assistedAim: false, inspiration: false, moved: false },
-    // Shadow Bind for the day: 'cold', 'cover' or null.
-    bind: null,
-    // Trance second proficiency: an id from js/trance-options.js, or '' for none.
-    trancePick: '',
-    shotsFired: flags(c.rifle.shots),
-    bullets: c.bulletsDefault,
+
     coins: { ...c.coinDefaults },
     gear: { equipped: [...c.gearDefaults.equipped], pack: [...c.gearDefaults.pack] },
     notes: { name: '', alignment: '', bio: '', session: '' },
   };
+  if (c.rifle) {
+    s.shotsFired = flags(c.rifle.shots);
+    s.bullets = c.bulletsDefault;
+  }
+  // Shadow Bind for the day: 'cold', 'cover' or null.
+  if (c.shadowBind) s.bind = null;
+  // Trance second proficiency: an id from js/trance-options.js, or '' for none.
+  if (c.trance) s.trancePick = '';
+  return s;
 }
 
 // Whole numbers written as plain digits, e.g. "12". Anything else is null.

@@ -2,13 +2,22 @@
 import { defaultState, STATE_VERSION } from './state.js';
 import { resourceMax, tranceChoice } from './derive.js';
 
-export const STORAGE_KEY = 'quickstep-sheet/state';
-export const CORRUPT_KEY = 'quickstep-sheet/corrupt';
+// Every build saves under its own name, so two characters on one site never share data.
+// The sniper keeps 'quickstep-sheet' so saves made before this change still load.
+export function storageKeys(c) {
+  const app = c.storageId;
+  return {
+    app,
+    state: `${app}/state`,
+    corrupt: `${app}/corrupt`,
+    probe: `${app}/probe`,
+    backupPrefix: app.replace(/-sheet$/, ''),
+  };
+}
 
-const APP = 'quickstep-sheet';
 const UNREADABLE = 'Saved data was unreadable, so the sheet started fresh. The old copy was kept.';
 export const NOT_SAVING = "This device isn't saving. Export a backup before closing.";
-const NOT_BACKUP = 'Not a Quickstep backup file';
+const notBackup = (c) => `Not a ${c.label} backup file`;
 
 const isObject = (v) => Boolean(v) && typeof v === 'object' && !Array.isArray(v);
 const isCount = (v) => Number.isInteger(v) && v >= 0;
@@ -22,7 +31,7 @@ const same = (a, b) => a !== undefined && JSON.stringify(a) === JSON.stringify(b
 export function loadState(storage, c) {
   let raw;
   try {
-    raw = storage.getItem(STORAGE_KEY);
+    raw = storage.getItem(storageKeys(c).state);
   } catch {
     return { state: defaultState(c), warning: NOT_SAVING };
   }
@@ -32,15 +41,15 @@ export function loadState(storage, c) {
     parsed = JSON.parse(raw);
     if (!isObject(parsed)) throw new Error('not an object');
   } catch {
-    try { storage.setItem(CORRUPT_KEY, raw); } catch { /* nothing more we can do */ }
+    try { storage.setItem(storageKeys(c).corrupt, raw); } catch { /* nothing more we can do */ }
     return { state: defaultState(c), warning: UNREADABLE };
   }
   return { state: migrateState(parsed, c), warning: null };
 }
 
-export function saveState(storage, state) {
+export function saveState(storage, state, c) {
   try {
-    storage.setItem(STORAGE_KEY, JSON.stringify(state));
+    storage.setItem(storageKeys(c).state, JSON.stringify(state));
     return true;
   } catch {
     return false;
@@ -78,11 +87,17 @@ export function migrateState(raw, c) {
     if (isObject(r.toggles) && typeof r.toggles[key] === 'boolean') s.toggles[key] = r.toggles[key];
   }
   // Arrows from the Quickstep build are not carried over; the rifle starts with its defaults.
-  s.shotsFired = fitFlags(r.shotsFired, c.rifle.shots);
-  if (isCount(r.bullets)) s.bullets = r.bullets;
-  if (r.bind === 'cold' || r.bind === 'cover') s.bind = r.bind;
-  else if (isObject(r.toggles) && r.toggles.coldStrike === true) s.bind = 'cold';
-  if (typeof r.trancePick === 'string' && (tranceChoice(r.trancePick).weapon || tranceChoice(r.trancePick).tool)) s.trancePick = r.trancePick;
+  if (c.rifle) {
+    s.shotsFired = fitFlags(r.shotsFired, c.rifle.shots);
+    if (isCount(r.bullets)) s.bullets = r.bullets;
+  }
+  if (c.shadowBind) {
+    if (r.bind === 'cold' || r.bind === 'cover') s.bind = r.bind;
+    else if (isObject(r.toggles) && r.toggles.coldStrike === true) s.bind = 'cold';
+  }
+  if (c.trance && typeof r.trancePick === 'string' && (tranceChoice(r.trancePick).weapon || tranceChoice(r.trancePick).tool)) {
+    s.trancePick = r.trancePick;
+  }
   // Gear and coins the player never touched follow the build; anything edited is kept.
   const untouched = (key) => (c.legacyDefaults ?? []).some((d) => same(r[key], d[key]));
   for (const coin of Object.keys(s.coins)) {
@@ -98,12 +113,12 @@ export function migrateState(raw, c) {
   return s;
 }
 
-export function exportBackup(state, now) {
+export function exportBackup(state, now, c) {
   const pad = (n) => String(n).padStart(2, '0');
   const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
   return {
-    filename: `quickstep-backup-${date}.json`,
-    text: JSON.stringify({ app: APP, exportedAt: now.toISOString(), state }, null, 2),
+    filename: `${storageKeys(c).backupPrefix}-backup-${date}.json`,
+    text: JSON.stringify({ app: storageKeys(c).app, exportedAt: now.toISOString(), state }, null, 2),
   };
 }
 
@@ -112,8 +127,8 @@ export function parseBackup(text, c) {
   try {
     data = JSON.parse(text);
   } catch {
-    throw new Error(NOT_BACKUP);
+    throw new Error(notBackup(c));
   }
-  if (!isObject(data) || data.app !== APP || !isObject(data.state)) throw new Error(NOT_BACKUP);
+  if (!isObject(data) || data.app !== storageKeys(c).app || !isObject(data.state)) throw new Error(notBackup(c));
   return migrateState(data.state, c);
 }
