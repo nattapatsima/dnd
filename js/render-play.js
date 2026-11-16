@@ -1,6 +1,6 @@
 // The Play tab: everything needed for a turn on one landscape screen.
 import {
-  SKILLS, abilityMod, coldStrikeBonus, coverBonus, damageText, fmt, otherAttacks, passive, profBonus,
+  SKILLS, abilityMod, attackLabel, climbNow, coldStrikeBonus, hasAdvantage, reachText, speedNow, coverBonus, damageText, fmt, otherAttacks, passive, profBonus,
   rangeText, saveBonus, skillBonus, skillMark, sneakDice, toHit,
 } from './derive.js';
 import { TRANCE_TOOLS, TRANCE_WEAPONS } from './trance-options.js';
@@ -22,6 +22,10 @@ function dots(action, argPrefix, flags, filled, label) {
 }
 
 const stat = (label, value) => `<div><div class="label">${label}</div><b>${value}</b></div>`;
+
+// Burst of Speed: the Speed cell itself is the toggle, so it costs no extra height.
+const burstCell = (c, t) => `<button class="stat-btn${t.burst ? ' on' : ''}" data-action="toggle" data-arg="burst" aria-pressed="${Boolean(t.burst)}">`
+  + `<div class="label">${t.burst ? 'Burst · no OAs' : 'Speed'}</div><b>${speedNow(c, t)}</b></button>`;
 
 // Shadow Bind: one choice per long rest. Cover needs a 15-ft move in dim light or darkness each turn.
 function shadowBindPanel(c, state) {
@@ -56,7 +60,7 @@ export function renderPlay(c, state, ui = {}) {
   const cold = coldStrikeBonus(c, state);
   const cover = coverBonus(c, state);
   const hasAssistedAim = c.resources.some((r) => r.id === 'assistedAim');
-  const hitText = `${t.advantage ? '2d20 high' : 'd20'} ${fmt(toHit(c, shot, { assistedAim: t.assistedAim }))}`;
+  const hitText = `${hasAdvantage(t) ? '2d20 high' : 'd20'} ${fmt(toHit(c, shot, { assistedAim: t.assistedAim }))}`;
   const con = abilityMod(c.abilities.con);
   const conText = `${con < 0 ? '−' : '+'} ${Math.abs(con)}`;
   const dice = c.hp.hitDice;
@@ -85,8 +89,8 @@ export function renderPlay(c, state, ui = {}) {
       <div class="row"><span>Failure</span><span class="dots">${dots('death-save', 'failure:', state.deathSaves.failure, (f) => f, 'Death save failure')}</span></div>
     </div>
     <div class="panel stats">
-      ${stat('AC', c.ac + cover)}${stat('Init', fmt(abilityMod(c.abilities.dex)))}${stat('Speed', c.speed)}
-      ${stat('Prof', fmt(profBonus(c.level)))}${!c.darkvision && c.climb ? stat('Climb', `${c.climb} ft`) : stat('Darkvision', c.darkvision ? `${c.darkvision} ft` : 'none')}${stat('Passive', passive(c, 'perception'))}
+      ${stat('AC', c.ac + cover)}${stat('Init', fmt(abilityMod(c.abilities.dex)))}${c.effects?.burst ? burstCell(c, t) : stat('Speed', speedNow(c, t))}
+      ${stat('Prof', fmt(profBonus(c.level)))}${!c.darkvision && c.climb ? stat('Climb', `${climbNow(c, t)} ft`) : stat('Darkvision', c.darkvision ? `${c.darkvision} ft` : 'none')}${stat('Passive', passive(c, 'perception'))}
     </div>
     <div class="row tight"><span class="label">Size ${c.size}</span><span class="label">${hitDice}</span></div>
   </section>
@@ -97,12 +101,12 @@ export function renderPlay(c, state, ui = {}) {
       <div class="row"><span>To hit</span><span class="hit">${hitText}</span></div>
       <div class="row"><span>Damage</span><b>${damageText(c, shot, {})}${shot.damageType ? ` ${esc(shot.damageType)}` : ''}${cold ? ` + ${cold} cold` : ''}</b></div>
       ${shot.sneak ? `<div class="row"><span>Sneak Attack</span><b>+${sneakDice(c)}</b></div>` : ''}
-      <div class="label">${shot.reachText ? esc(shot.reachText) : rangeText(shot, { assistedAim: t.assistedAim })} · ${esc(shot.note)}</div>
-      <div class="chips">${chip('toggle', 'advantage', 'Advantage', t.advantage)}${hasAssistedAim ? chip('toggle', 'assistedAim', 'Assisted Aim', t.assistedAim) : ''}</div>
+      <div class="label">${shot.reach ? esc(reachText(c, shot, t)) : rangeText(shot, { assistedAim: t.assistedAim })} · ${esc(shot.note)}</div>
+      <div class="chips">${chip('toggle', 'advantage', 'Advantage', t.advantage)}${hasAssistedAim ? chip('toggle', 'assistedAim', 'Assisted Aim', t.assistedAim) : ''}${c.effects?.steadyAim ? chip('toggle', 'steadyAim', 'Steady Aim', t.steadyAim) : ''}${c.effects?.lengthened ? chip('toggle', 'lengthened', 'Lengthened Strike', t.lengthened) : ''}</div>
     </div>
     <div class="panel">
       <div class="label">Other attacks</div>
-      ${others.map((a) => `<div class="row"><span>${esc(a.name)}</span><b>${fmt(toHit(c, a, { assistedAim: t.assistedAim }))} · ${damageText(c, a, { compact: true })}</b></div>`).join('')}
+      ${others.map((a) => `<div class="row"><span>${esc(attackLabel(c, a, t))}</span><b>${fmt(toHit(c, a, { assistedAim: t.assistedAim }))} · ${damageText(c, a, { compact: true })}</b></div>`).join('')}
     </div>
     ${c.rifle ? `<div class="panel row ammo"><span>Rifle</span><span class="dots">${dots('shot', '', state.shotsFired, (f) => !f, 'Rifle shot')}</span><button data-action="reload" aria-label="Reload from ${state.bullets} spare bullets">Reload · <span id="bullets">${state.bullets}</span></button></div>` : ''}
   </section>

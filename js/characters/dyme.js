@@ -1,7 +1,7 @@
 // Build data for Dyme, the Dhampir Rogue (Thief). Claude edits this on level-ups; the app never does.
 // Every number shown on the sheet must match Characters/Dyme.md.
 export const DYME = {
-  buildVersion: 1,
+  buildVersion: 2,
   id: 'dyme',
   // Saves, backups and the storage probe live under this name. Never change it: saved data would be lost.
   storageId: 'dyme-sheet',
@@ -36,14 +36,15 @@ export const DYME = {
   attacks: [
     {
       id: 'shot', name: 'Whip', kind: 'melee', ability: 'dex', die: '1d4', damageType: 'slashing', sneak: true, main: true,
-      reachText: '15 ft · 10 on Opportunity Attacks · 25 with Lengthened Strike',
+      // Whip reach 10 + Reach Attack 5; Reach Attack doesn't apply to Opportunity Attacks.
+      reach: 15, oaReach: 10,
       note: 'Slow: a hit cuts its speed by 10 ft',
     },
-    { id: 'claws', name: 'Hand Claws, Vex, 10 ft', kind: 'melee', ability: 'dex', die: '1d4' },
+    { id: 'claws', name: 'Hand Claws, Vex', reach: 10, kind: 'melee', ability: 'dex', die: '1d4' },
     // The Light extra attack: no ability modifier on its damage (it's positive).
-    { id: 'dagger', name: 'Dagger, Bonus Action, 10 ft', kind: 'melee', ability: 'dex', die: '1d4', noModDamage: true },
+    { id: 'dagger', name: 'Dagger, Bonus Action', reach: 10, kind: 'melee', ability: 'dex', die: '1d4', noModDamage: true },
     // DM ruling: Dex to hit as well as damage.
-    { id: 'natural', name: 'Natural Attack, fangs, 10 ft', kind: 'melee', ability: 'dex', die: '1d6' },
+    { id: 'natural', name: 'Natural Attack, fangs', reach: 10, kind: 'melee', ability: 'dex', die: '1d6' },
     { id: 'shortbow', name: 'Shortbow, 80/320', kind: 'ranged', ability: 'dex', die: '1d6' },
   ],
 
@@ -54,6 +55,12 @@ export const DYME = {
     { id: 'lengthened', name: 'Lengthened Strike', max: 'prof', recharge: 'long' },
     { id: 'ethereal', name: 'Ethereal Fade', max: 1, recharge: 'long' },
   ],
+  // Effect chips on the Play tab: while on, they change the numbers shown. They never spend a use.
+  effects: {
+    steadyAim: true, // Advantage on the attack, Speed 0
+    lengthened: { reach: 10 }, // Lengthened Strike: +10 ft melee reach (not Opportunity Attacks)
+    burst: { speed: 30 }, // Burst of Speed: +30 ft Speed (and Climb), no Opportunity Attacks
+  },
   // One line under the daily uses on the Play tab.
   playNote: 'Natural 1: Lucky reroll · Ominous Will Wis save DC 15',
 

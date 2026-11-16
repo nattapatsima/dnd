@@ -1,5 +1,5 @@
 // Table state: everything the player changes at the table. Pure functions only.
-import { resourceMax } from './derive.js';
+import { effectKeys, resourceMax } from './derive.js';
 
 // 2: hit dice are tracked per die type ({ d8: [...], d10: [...] }).
 // 3: arrows replaced by rifle shots (shotsFired flags) and spare bullets; conditions and exhaustion removed.
@@ -20,7 +20,10 @@ export function defaultState(c) {
     deathSaves: clearedSaves(),
     hitDiceSpent: hitDiceFlags(c),
     uses: Object.fromEntries(c.resources.map((r) => [r.id, flags(resourceMax(c, r))])),
-    toggles: { advantage: false, assistedAim: false, inspiration: false, moved: false },
+    toggles: {
+      advantage: false, assistedAim: false, inspiration: false, moved: false,
+      ...Object.fromEntries(effectKeys(c).map((key) => [key, false])),
+    },
 
     coins: { ...c.coinDefaults },
     gear: { equipped: [...c.gearDefaults.equipped], pack: [...c.gearDefaults.pack] },
@@ -106,6 +109,7 @@ export function reduce(state, action, c) {
       s.toggles.advantage = false;
       s.toggles.assistedAim = false;
       s.toggles.moved = false;
+      for (const key of effectKeys(c)) s.toggles[key] = false;
       return done(`Long rest: HP, hit ${hitDieWord(c)} and daily uses restored.${c.longRestNote ? ` ${c.longRestNote}` : ''}`, true);
     case 'toggleDeathSave':
       s.deathSaves[action.kind][action.index] = !s.deathSaves[action.kind][action.index];

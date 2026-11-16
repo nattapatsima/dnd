@@ -63,6 +63,8 @@ for (const [who, page] of PAGES) for (const [width, height] of SIZES) {
       trance.value = 'heavy-crossbow';
       trance.dispatchEvent(new Event('change', { bubbles: true }));
     }
+    // Dyme's effect chips, all on (lit Speed cell, longer reach lines).
+    for (const key of ['steadyAim', 'lengthened', 'burst']) doc.querySelector(`[data-action="toggle"][data-arg="${key}"]`)?.click();
     doc.querySelector('[data-action="short-rest"]').click();
     doc.querySelector('[data-action="damage"]').click();
     const busy = bottom();

@@ -14,3 +14,6 @@ The readable record of a Build (`Characters/<name>.md` in the DnD workspace). It
 
 **DM ruling**
 A table decision that overrides or settles the rules for one character, such as a custom weapon or a disallowed trait. A Build lists its DM rulings so they're on hand at the table.
+
+**Effect chip**
+A Play-tab toggle for a per-turn feature (Steady Aim, Lengthened Strike, Burst of Speed). While it is on, the numbers it affects (to-hit, reach, speed) show the changed values. It never spends a daily use, and a Long rest turns it off.

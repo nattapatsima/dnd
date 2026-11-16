@@ -115,3 +115,30 @@ export function damageText(c, attack, { compact = false } = {}) {
   if (attack.cantripDie) dice.push(`${cantripDice(c.level)}${attack.cantripDie}`);
   return compact ? `${dice.join('+')}${sign}${Math.abs(m)}` : `${dice.join(' + ')} ${sign} ${Math.abs(m)}`;
 }
+
+// Effect chips a build declares (Dyme: Steady Aim, Lengthened Strike, Burst of Speed).
+const EFFECT_KEYS = ['steadyAim', 'lengthened', 'burst'];
+export const effectKeys = (c) => EFFECT_KEYS.filter((key) => c.effects?.[key]);
+
+// Either the Advantage chip or Steady Aim gives Advantage.
+export const hasAdvantage = (toggles) => Boolean(toggles.advantage || toggles.steadyAim);
+
+const burstBonus = (c, t) => (t.burst && c.effects?.burst ? c.effects.burst.speed : 0);
+
+// Steady Aim sets Speed to 0, which beats Burst of Speed.
+export const speedNow = (c, t) => (t.steadyAim ? 0 : c.speed + burstBonus(c, t));
+export const climbNow = (c, t) => (t.steadyAim ? 0 : c.climb + burstBonus(c, t));
+
+const lengthenedReach = (c) => c.effects?.lengthened?.reach ?? 0;
+export const reachNow = (c, attack, t) => attack.reach + (t.lengthened ? lengthenedReach(c) : 0);
+
+// The main melee attack's reach line, e.g. "15 ft · 10 on Opportunity Attacks · 25 with Lengthened Strike".
+export function reachText(c, attack, t) {
+  const extra = lengthenedReach(c);
+  const oa = attack.oaReach === undefined ? '' : ` · ${attack.oaReach} on Opportunity Attacks`;
+  if (t.lengthened && extra) return `${attack.reach + extra} ft with Lengthened Strike${oa}`;
+  return `${attack.reach} ft${oa}${extra ? ` · ${attack.reach + extra} with Lengthened Strike` : ''}`;
+}
+
+// An attack row's name, with its current reach when it has one.
+export const attackLabel = (c, attack, t) => (attack.reach ? `${attack.name}, ${reachNow(c, attack, t)} ft` : attack.name);

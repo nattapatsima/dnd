@@ -93,3 +93,51 @@ test('Dyme mounts and saves under its own key', () => {
   ok(storage.getItem('quickstep-sheet/state') === null, 'sniper save untouched');
   eq(text(root, '#hp'), '31');
 });
+
+// Effect chips: they change the numbers on screen while on, and never spend a use.
+const on = (...keys) => ({ ...s0, toggles: { ...s0.toggles, ...Object.fromEntries(keys.map((k) => [k, true])) } });
+const stats = (h) => { const el = document.createElement('div'); el.innerHTML = h; return [...el.querySelectorAll('.stats .label, .stats b')].map((n) => n.textContent).join(' '); };
+
+test('effect chips start off and Long rest clears them', () => {
+  eq([s0.toggles.steadyAim, s0.toggles.lengthened, s0.toggles.burst], [false, false, false]);
+  const o = reduce(on('steadyAim', 'lengthened', 'burst'), { type: 'longRest' }, c).state.toggles;
+  eq([o.steadyAim, o.lengthened, o.burst], [false, false, false]);
+});
+
+test('Steady Aim: 2d20 high and Speed 0, Advantage chip untouched', () => {
+  const h = renderPlay(c, on('steadyAim'), {});
+  ok(h.includes('2d20 high +6'), 'advantage on the Whip');
+  ok(stats(h).includes('Speed 0'), 'speed 0');
+  ok(h.includes('data-arg="advantage" aria-pressed="false"'), 'Advantage chip stays off');
+});
+
+test('Lengthened Strike: Whip 25 ft, other melee 20 ft', () => {
+  const h = renderPlay(c, on('lengthened'), {});
+  for (const t of ['25 ft with Lengthened Strike · 10 on Opportunity Attacks', 'Hand Claws, Vex, 20 ft', 'Dagger, Bonus Action, 20 ft', 'Natural Attack, fangs, 20 ft']) ok(h.includes(t), t);
+  ok(h.includes('Shortbow, 80/320'), 'ranged unchanged');
+});
+
+test('Burst of Speed: the Speed cell toggles to 60 and Climb 60', () => {
+  const off = renderPlay(c, s0, {});
+  ok(off.includes('data-arg="burst"'), 'Speed cell is a toggle');
+  ok(stats(off).includes('Speed 30') && stats(off).includes('Climb 30 ft'), 'base speeds');
+  const h = renderPlay(c, on('burst'), {});
+  ok(stats(h).includes('Burst · no OAs 60') && stats(h).includes('Climb 60 ft'), stats(h));
+  ok(stats(renderPlay(c, on('burst', 'steadyAim'), {})).includes('Burst · no OAs 0'), 'Steady Aim wins');
+});
+
+test('tapping effect chips saves them and spends no use', () => {
+  const storage = mem();
+  const { root } = mountFresh({ character: c, storage });
+  for (const key of ['steadyAim', 'lengthened', 'burst']) click(root, 'toggle', key);
+  const s = JSON.parse(storage.getItem('dyme-sheet/state'));
+  eq([s.toggles.steadyAim, s.toggles.lengthened, s.toggles.burst], [true, true, true]);
+  ok(Object.values(s.uses).every((u) => u.every((x) => !x)), 'no use spent');
+  ok(text(root, '.hit').startsWith('2d20 high'), 'to-hit redrawn');
+  ok(root.textContent.includes('Hand Claws, Vex, 20 ft') && root.textContent.includes('25 ft with Lengthened Strike'), 'reach redrawn');
+  eq(text(root, '[data-arg="burst"] b'), '0', 'Steady Aim keeps Speed 0 under Burst');
+});
+
+test('a reach attack without an Opportunity Attack reach still reads cleanly', () => {
+  eq(d.reachText(c, { reach: 10 }, {}), '10 ft · 20 with Lengthened Strike');
+});

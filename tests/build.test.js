@@ -62,3 +62,10 @@ test('the sniper keeps all its parts', () => {
   const play = renderPlay(sniper, defaultState(sniper), {});
   for (const t of ['data-action="reload"', 'data-box="bind"', 'data-box="trance"']) ok(play.includes(t), t);
 });
+
+test('the sniper has no Dyme effect chips', () => {
+  const s = defaultState(sniper);
+  for (const key of ['steadyAim', 'lengthened', 'burst']) ok(!(key in s.toggles), `no ${key} toggle`);
+  const play = renderPlay(sniper, s, {});
+  for (const key of ['steadyAim', 'lengthened', 'burst']) ok(!play.includes(`data-arg="${key}"`), `no ${key} chip`);
+});

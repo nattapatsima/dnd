@@ -1,6 +1,6 @@
 // Offline cache for both character pages. Every publish bumps CACHE together with the
 // buildVersion of every character whose build file changed.
-const CACHE = 'quickstep-v6';
+const CACHE = 'quickstep-v7';
 const ASSETS = [
   './',
   './index.html',
