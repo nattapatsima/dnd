@@ -138,6 +138,30 @@ test('tapping effect chips saves them and spends no use', () => {
   eq(text(root, '[data-arg="burst"] b'), '0', 'Steady Aim keeps Speed 0 under Burst');
 });
 
+test('Bonus Action panel shows Fast Hands and Disarm with worked numbers', () => {
+  const el = document.createElement('div');
+  el.innerHTML = renderPlay(c, s0, {});
+  const panel = el.querySelector('[data-box="bonus-actions"]').textContent;
+  for (const t of ['Fast Hands', '+8 Sleight of Hand', 'lock, trap, pocket · or Utilize, magic item',
+    'Disarm', '+4 vs Str', 'after a whip hit: drops shield or held item']) ok(panel.includes(t), t);
+  ok(!panel.includes('Pull'), 'Pull is not listed as a Bonus Action');
+});
+
+test('Bonus Action numbers follow the build', () => {
+  const dex20 = { ...c, abilities: { ...c.abilities, dex: 20 } };
+  const h = renderPlay(dex20, defaultState(dex20), {});
+  ok(h.includes('+9 Sleight of Hand') && h.includes('+5 vs Str'), 'Dex 20 raises both');
+});
+
+test('Pull sits on the Whip card', () => {
+  ok(renderPlay(c, s0, {}).includes('Pull: item under 1 lb within reach'), 'pull line');
+});
+
+test('the sniper has no Bonus Action panel or Pull line', () => {
+  const h = renderPlay(sniper, defaultState(sniper), {});
+  ok(!h.includes('data-box="bonus-actions"') && !h.includes('Pull:'), 'sniper unchanged');
+});
+
 test('a reach attack without an Opportunity Attack reach still reads cleanly', () => {
   eq(d.reachText(c, { reach: 10 }, {}), '10 ft · 20 with Lengthened Strike');
 });

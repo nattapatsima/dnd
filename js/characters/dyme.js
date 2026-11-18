@@ -1,7 +1,7 @@
 // Build data for Dyme, the Dhampir Rogue (Thief). Claude edits this on level-ups; the app never does.
 // Every number shown on the sheet must match Characters/Dyme.md.
 export const DYME = {
-  buildVersion: 2,
+  buildVersion: 3,
   id: 'dyme',
   // Saves, backups and the storage probe live under this name. Never change it: saved data would be lost.
   storageId: 'dyme-sheet',
@@ -39,6 +39,8 @@ export const DYME = {
       // Whip reach 10 + Reach Attack 5; Reach Attack doesn't apply to Opportunity Attacks.
       reach: 15, oaReach: 10,
       note: 'Slow: a hit cuts its speed by 10 ft',
+      // Scourge Master. The feat states no action cost for this.
+      extraLine: 'Pull: item under 1 lb within reach',
     },
     { id: 'claws', name: 'Hand Claws, Vex', reach: 10, kind: 'melee', ability: 'dex', die: '1d4' },
     // The Light extra attack: no ability modifier on its damage (it's positive).
@@ -63,6 +65,11 @@ export const DYME = {
   },
   // One line under the daily uses on the Play tab.
   playNote: 'Natural 1: Lucky reroll · Ominous Will Wis save DC 15',
+  // Bonus Action panel on the Play tab. Bonuses come from the build: a skill, or a plain ability check.
+  playBonusActions: [
+    { name: 'Fast Hands', skill: 'sleightOfHand', roll: 'Sleight of Hand', text: 'lock, trap, pocket · or Utilize, magic item' },
+    { name: 'Disarm', ability: 'dex', roll: 'vs Str', text: 'after a whip hit: drops shield or held item' },
+  ],
 
   spells: [
     {

@@ -53,6 +53,15 @@ function trancePanel(state) {
     </div>`;
 }
 
+// Bonus Actions worth a number at the table. The bonus is worked out from the build.
+function bonusActionPanel(c) {
+  const bonus = (b) => (b.skill ? skillBonus(c, b.skill) : abilityMod(c.abilities[b.ability]));
+  return `<div class="panel" data-box="bonus-actions">
+      <div class="label">Bonus Actions</div>
+      ${c.playBonusActions.map((b) => `<div class="row"><span>${esc(b.name)}</span><b>${fmt(bonus(b))} ${esc(b.roll)}</b></div><div class="label">${esc(b.text)}</div>`).join('')}
+    </div>`;
+}
+
 export function renderPlay(c, state, ui = {}) {
   const t = state.toggles;
   const shot = c.attacks.find((a) => a.main);
@@ -105,6 +114,7 @@ export function renderPlay(c, state, ui = {}) {
       <div class="row"><span>Damage</span><b>${damageText(c, shot, {})}${shot.damageType ? ` ${esc(shot.damageType)}` : ''}${cold ? ` + ${cold} cold` : ''}</b></div>
       ${shot.sneak ? `<div class="row"><span>Sneak Attack</span><b>+${sneakDice(c)}</b></div>` : ''}
       <div class="label">${shot.rangeLabel ? esc(shot.rangeLabel) : shot.reach ? esc(reachText(c, shot, t)) : rangeText(shot, { assistedAim: t.assistedAim })} · ${esc(shot.note)}</div>
+      ${shot.extraLine ? `<div class="label">${esc(shot.extraLine)}</div>` : ''}
       <div class="chips">${chip('toggle', 'advantage', 'Advantage', t.advantage)}${hasAssistedAim ? chip('toggle', 'assistedAim', 'Assisted Aim', t.assistedAim) : ''}${c.effects?.steadyAim ? chip('toggle', 'steadyAim', 'Steady Aim', t.steadyAim) : ''}${c.effects?.lengthened ? chip('toggle', 'lengthened', 'Lengthened Strike', t.lengthened) : ''}</div>
     </div>
     <div class="panel">
@@ -112,6 +122,7 @@ export function renderPlay(c, state, ui = {}) {
       ${others.map((a) => `<div class="row"><span>${esc(attackLabel(c, a, t))}</span><b>${fmt(toHit(c, a, { assistedAim: t.assistedAim }))} · ${damageText(c, a, { compact: true })}</b></div>`).join('')}
       ${(c.keySpells ?? []).map((s) => `<div class="row"><span>${esc(s.name)}</span><b>${esc(fillNumbers(c, s.summary))}</b></div>`).join('')}
     </div>
+    ${c.playBonusActions ? bonusActionPanel(c) : ''}
     ${c.rifle ? `<div class="panel row ammo"><span>Rifle</span><span class="dots">${dots('shot', '', state.shotsFired, (f) => !f, 'Rifle shot')}</span><button data-action="reload" aria-label="Reload from ${state.bullets} spare bullets">Reload · <span id="bullets">${state.bullets}</span></button></div>` : ''}
     ${slots.length ? `<div class="panel" data-box="slots"><div class="label">Spell slots</div>${slots.map(useRow).join('')}</div>` : ''}
   </section>
